@@ -31,6 +31,13 @@ function Glyph({ name, color, strokeWidth }: GlyphProps & { name: IconName }) {
     case 'locate': return <><Circle cx="12" cy="12" r="6" fill="none" {...common}/><Circle cx="12" cy="12" r="2" fill={color}/><Path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" {...common}/></>;
     case 'bookmark': return <Path d="M6 3h12v18l-6-4-6 4V3Z" fill="none" {...common}/>;
     case 'folder': return <Path d="M3 6h7l2 2h9v11H3V6Z" fill="none" {...common}/>;
+    case 'plane': return <><Path d="m3 11 18-8-7 18-2-7-9-3Z" fill="none" {...common}/><Path d="m12 14 4-5" fill="none" {...common}/></>;
+    case 'calendar': return <><Rect x="3" y="5" width="18" height="16" rx="2" fill="none" {...common}/><Path d="M8 3v4M16 3v4M3 10h18" fill="none" {...common}/></>;
+    case 'check': return <Polyline points="4 12 9 17 20 6" fill="none" {...common}/>;
+    case 'wallet': return <><Rect x="3" y="6" width="18" height="14" rx="2" fill="none" {...common}/><Path d="M3 9h15M16 13h5v4h-5a2 2 0 0 1 0-4Z" fill="none" {...common}/></>;
+    case 'document': return <><Path d="M6 3h8l4 4v14H6V3Z" fill="none" {...common}/><Path d="M14 3v5h4M9 13h6M9 17h5" fill="none" {...common}/></>;
+    case 'bell': return <><Path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" fill="none" {...common}/><Path d="M10 21h4" fill="none" {...common}/></>;
+    case 'plus': return <Path d="M12 5v14M5 12h14" fill="none" {...common}/>;
   }
 }
 

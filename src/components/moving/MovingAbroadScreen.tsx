@@ -1,0 +1,81 @@
+import { useState } from 'react';
+import { Image } from 'expo-image';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+import { Icon } from '@/components/ui/Icon';
+import { countries, deadlines, movingPlans } from '@/lib/movingData';
+import { user } from '@/lib/homeData';
+import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
+
+type Props = { onTabChange?: (tab: string) => void };
+
+export function MovingAbroadScreen({ onTabChange }: Props) {
+  const insets = useSafeAreaInsets();
+  const [activePlan, setActivePlan] = useState(movingPlans[0]);
+  const progress = Math.round((activePlan.completedSteps / activePlan.totalSteps) * 100);
+
+  return <View style={s.root}>
+    <StatusBar style="dark" />
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
+      <View style={[s.appHeader, { paddingTop: insets.top + spacing.sm }]}>
+        <AnimatedPressable accessibilityLabel="Open menu" style={s.menuButton}>
+          <Icon name="menu" color={colors.white}/>
+        </AnimatedPressable>
+        <View style={s.brand}>
+          <Text style={s.brandMark}>⌁⌁</Text>
+          <Text style={s.brandName}>Explorixa <Text style={s.brandGold}>✦</Text></Text>
+        </View>
+        <View>
+          <Image source={user.avatar} style={s.avatar} contentFit="cover" />
+          <View style={s.avatarDot}/>
+        </View>
+      </View>
+      <View style={s.hero}>
+        <View style={s.heroTop}><View><Text style={s.eyebrow}>EXPLORIXA · MOVE</Text><Text style={s.heroTitle}>Your life, somewhere new.</Text></View><AnimatedPressable accessibilityLabel="Moving alerts" style={s.alert}><Icon name="bell" color={colors.white} size={21}/><View style={s.dot}/></AnimatedPressable></View>
+        <Text style={s.heroCopy}>Research countries, compare real costs and turn a possibility into a plan.</Text>
+        <View style={s.heroActions}><AnimatedPressable style={s.primaryButton}><Icon name="plus" size={18} color={colors.forest}/><Text style={s.primaryText}>Create a moving plan</Text></AnimatedPressable><AnimatedPressable style={s.circleButton} accessibilityLabel="Search countries"><Icon name="search" color={colors.white}/></AnimatedPressable></View>
+      </View>
+
+      <View style={s.body}>
+        <View style={s.sectionHeading}><View><Text style={s.kicker}>YOUR PLANS</Text><Text style={s.heading}>Where are you headed?</Text></View><Text style={s.link}>View all</Text></View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.planTabs}>
+          {movingPlans.map(plan => <AnimatedPressable key={plan.id} onPress={() => setActivePlan(plan)} style={[s.planTab, activePlan.id === plan.id && s.planTabActive]}><Text style={s.flag}>{plan.flag}</Text><View><Text numberOfLines={1} style={[s.planTabTitle, activePlan.id === plan.id && s.planTabTitleActive]}>{plan.title}</Text><Text style={[s.planTabMeta, activePlan.id === plan.id && s.planTabMetaActive]}>{plan.moveDate}</Text></View></AnimatedPressable>)}
+        </ScrollView>
+
+        <View style={s.progressCard}>
+          <View style={s.progressTop}><View style={s.progressRing}><Text style={s.progressNumber}>{progress}%</Text></View><View style={s.progressInfo}><Text style={s.cardEyebrow}>ACTIVE PLAN</Text><Text style={s.cardTitle}>{activePlan.country}</Text><Text style={s.meta}>{activePlan.cities} · {activePlan.household}</Text></View><Icon name="arrow" size={22}/></View>
+          <View style={s.track}><View style={[s.fill, { width: `${progress}%` }]}/></View>
+          <View style={s.progressFooter}><Text style={s.progressLabel}>{activePlan.completedSteps} of {activePlan.totalSteps} planning steps complete</Text><Text style={s.next}>Continue plan →</Text></View>
+        </View>
+
+        <View style={s.quickGrid}>
+          <QuickCard icon="wallet" label="Monthly budget" value={activePlan.budget}/>
+          <QuickCard icon="document" label="Visa pathway" value={activePlan.visaRoute}/>
+        </View>
+
+        <View style={s.sectionHeading}><View><Text style={s.kicker}>NEXT UP</Text><Text style={s.heading}>Moving timeline</Text></View><Text style={s.link}>Full timeline</Text></View>
+        <View style={s.timelineCard}>{deadlines.map((item, index) => <View key={item.title} style={[s.deadline, index > 0 && s.deadlineBorder]}><View style={[s.dateBox, item.tone === 'green' && s.dateBoxGreen]}><Text style={s.day}>{item.day}</Text><Text style={s.month}>{item.month}</Text></View><View style={s.deadlineCopy}><Text style={s.deadlineTitle}>{item.title}</Text><Text style={s.meta}>{item.detail}</Text></View><Icon name="check" color={colors.gold} size={20}/></View>)}</View>
+
+        <View style={s.sectionHeading}><View><Text style={s.kicker}>COMPARE</Text><Text style={s.heading}>Countries on your radar</Text></View><Text style={s.link}>Edit</Text></View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.countryRow}>{countries.map(country => <View key={country.name} style={s.countryCard}><View style={s.countryTop}><Text style={s.countryFlag}>{country.flag}</Text><View style={s.match}><Text style={s.matchText}>{country.match} match</Text></View></View><Text style={s.countryName}>{country.name}</Text><Text style={s.meta}>{country.city} estimate</Text><Text style={s.cost}>{country.monthly}<Text style={s.costSuffix}> / mo</Text></Text></View>)}</ScrollView>
+
+        <View style={s.updateCard}><View style={s.updateIcon}><Icon name="bell" color={colors.gold}/></View><View style={s.updateCopy}><Text style={s.updateLabel}>OFFICIAL UPDATE · PORTUGAL</Text><Text style={s.updateTitle}>Residence permit appointment process updated</Text><Text style={s.updateMeta}>Verified 2 days ago · Official source</Text></View><Icon name="arrow" color={colors.white}/></View>
+
+        <View style={s.sectionHeading}><View><Text style={s.kicker}>PICK UP WHERE YOU LEFT OFF</Text><Text style={s.heading}>Recently explored</Text></View></View>
+        <View style={s.recentCard}><View style={s.recentArt}><Text style={s.recentEmoji}>🌆</Text></View><View style={s.recentCopy}><Text style={s.recentType}>CITY GUIDE</Text><Text style={s.recentTitle}>Living in Porto</Text><Text style={s.meta}>Neighborhoods · Costs · Daily life</Text><Text style={s.liveLink}>Could you live here? →</Text></View></View>
+      </View>
+      <View style={s.bottomSpace}/>
+    </ScrollView>
+    <BottomNavigation active="Move" onChange={onTabChange}/>
+  </View>;
+}
+
+function QuickCard({ icon, label, value }: { icon: 'wallet' | 'document'; label: string; value: string }) { return <AnimatedPressable style={s.quickCard}><View style={s.quickIcon}><Icon name={icon} color={colors.gold} size={22}/></View><Text style={s.quickLabel}>{label}</Text><Text numberOfLines={2} style={s.quickValue}>{value}</Text><Text style={s.quickLink}>Review →</Text></AnimatedPressable>; }
+
+const s = StyleSheet.create({
+  root:{flex:1,backgroundColor:colors.canvas},content:{paddingBottom:spacing.xl},appHeader:{minHeight:92,paddingHorizontal:spacing.lg,paddingBottom:spacing.sm,backgroundColor:colors.canvas,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},menuButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center',...shadows.soft},brand:{alignItems:'center'},brandMark:{height:21,fontFamily:'Georgia',fontSize:26,lineHeight:20,color:colors.gold},brandName:{fontFamily:'Georgia',fontSize:27,fontWeight:'700',color:colors.ink},brandGold:{color:colors.gold},avatar:{width:48,height:48,borderRadius:24,borderWidth:2,borderColor:colors.white},avatarDot:{position:'absolute',right:-1,top:-1,width:12,height:12,borderRadius:6,backgroundColor:colors.gold,borderWidth:2,borderColor:colors.white},hero:{backgroundColor:colors.forest,paddingTop:spacing.xxl,paddingHorizontal:spacing.lg,paddingBottom:spacing.xxl,borderBottomLeftRadius:34,borderBottomRightRadius:34},heroTop:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start'},eyebrow:{fontSize:11,fontWeight:'800',letterSpacing:2,color:colors.gold,marginBottom:spacing.sm},heroTitle:{fontFamily:'Georgia',fontWeight:'700',fontSize:37,lineHeight:43,color:colors.white,maxWidth:290},heroCopy:{...typography.body,color:'#C9D7D1',marginTop:spacing.md,maxWidth:335},alert:{width:42,height:42,borderRadius:radius.pill,backgroundColor:colors.forestSoft,alignItems:'center',justifyContent:'center'},dot:{position:'absolute',right:9,top:8,width:7,height:7,borderRadius:4,backgroundColor:colors.gold,borderWidth:1,borderColor:colors.forest},heroActions:{flexDirection:'row',gap:spacing.sm,marginTop:spacing.xl},primaryButton:{height:52,flex:1,borderRadius:radius.pill,backgroundColor:colors.gold,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:spacing.xs},primaryText:{fontSize:15,fontWeight:'800',color:colors.forest},circleButton:{width:52,height:52,borderRadius:radius.pill,borderWidth:1,borderColor:'#547066',alignItems:'center',justifyContent:'center'},body:{paddingTop:spacing.xxl},sectionHeading:{marginHorizontal:spacing.lg,flexDirection:'row',justifyContent:'space-between',alignItems:'flex-end',marginBottom:spacing.md,marginTop:spacing.lg},kicker:{fontSize:10,fontWeight:'800',letterSpacing:1.6,color:colors.gold,marginBottom:5},heading:{...typography.title,color:colors.ink},link:{...typography.label,color:colors.gold},planTabs:{paddingHorizontal:spacing.lg,gap:spacing.sm},planTab:{width:230,padding:spacing.md,borderRadius:radius.lg,backgroundColor:colors.surface,borderWidth:1,borderColor:colors.line,flexDirection:'row',alignItems:'center',gap:spacing.sm},planTabActive:{backgroundColor:colors.forest,borderColor:colors.forest},flag:{fontSize:25},planTabTitle:{...typography.label,color:colors.ink,maxWidth:165},planTabTitleActive:{color:colors.white},planTabMeta:{...typography.caption,color:colors.muted,marginTop:2},planTabMetaActive:{color:'#B7CAC2'},progressCard:{margin:spacing.lg,marginBottom:spacing.sm,padding:spacing.lg,borderRadius:radius.lg,backgroundColor:colors.surface,...shadows.soft},progressTop:{flexDirection:'row',alignItems:'center'},progressRing:{width:62,height:62,borderRadius:31,borderWidth:6,borderColor:colors.gold,alignItems:'center',justifyContent:'center'},progressNumber:{fontSize:16,fontWeight:'800',color:colors.ink},progressInfo:{flex:1,marginLeft:spacing.md},cardEyebrow:{fontSize:9,fontWeight:'800',letterSpacing:1.4,color:colors.gold},cardTitle:{...typography.cardTitle,color:colors.ink,marginVertical:2},meta:{...typography.caption,color:colors.muted},track:{height:7,borderRadius:4,backgroundColor:colors.line,marginTop:spacing.lg,overflow:'hidden'},fill:{height:7,borderRadius:4,backgroundColor:colors.gold},progressFooter:{flexDirection:'row',justifyContent:'space-between',marginTop:spacing.sm},progressLabel:{...typography.caption,color:colors.muted},next:{...typography.caption,fontWeight:'700',color:colors.gold},quickGrid:{flexDirection:'row',gap:spacing.sm,marginHorizontal:spacing.lg},quickCard:{flex:1,minHeight:165,padding:spacing.md,borderRadius:radius.lg,backgroundColor:'#EFE6D8'},quickIcon:{width:40,height:40,borderRadius:20,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',marginBottom:spacing.md},quickLabel:{...typography.caption,color:colors.muted},quickValue:{fontFamily:'Georgia',fontSize:18,lineHeight:22,fontWeight:'700',color:colors.ink,marginTop:4},quickLink:{...typography.caption,fontWeight:'700',color:colors.gold,marginTop:'auto'},timelineCard:{marginHorizontal:spacing.lg,borderRadius:radius.lg,backgroundColor:colors.surface,paddingHorizontal:spacing.md,...shadows.soft},deadline:{flexDirection:'row',alignItems:'center',paddingVertical:spacing.md},deadlineBorder:{borderTopWidth:1,borderTopColor:colors.line},dateBox:{width:48,height:51,borderRadius:radius.sm,backgroundColor:'#F2E4CF',alignItems:'center',justifyContent:'center'},dateBoxGreen:{backgroundColor:'#DFEAE5'},day:{fontFamily:'Georgia',fontWeight:'700',fontSize:20,color:colors.ink},month:{fontSize:9,fontWeight:'800',letterSpacing:1,color:colors.gold},deadlineCopy:{flex:1,marginLeft:spacing.md},deadlineTitle:{...typography.label,color:colors.ink,marginBottom:2},countryRow:{paddingHorizontal:spacing.lg,gap:spacing.sm},countryCard:{width:176,padding:spacing.md,borderRadius:radius.lg,backgroundColor:colors.surface,borderWidth:1,borderColor:colors.line},countryTop:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},countryFlag:{fontSize:30},match:{backgroundColor:'#E2EEE8',paddingHorizontal:8,paddingVertical:5,borderRadius:radius.pill},matchText:{fontSize:10,fontWeight:'800',color:colors.forest},countryName:{...typography.cardTitle,fontSize:20,marginTop:spacing.sm},cost:{fontFamily:'Georgia',fontSize:20,fontWeight:'700',color:colors.ink,marginTop:spacing.md},costSuffix:{fontFamily:undefined,fontSize:11,fontWeight:'400',color:colors.muted},updateCard:{marginHorizontal:spacing.lg,marginTop:spacing.xxl,padding:spacing.lg,borderRadius:radius.lg,backgroundColor:colors.forest,flexDirection:'row',alignItems:'center'},updateIcon:{width:43,height:43,borderRadius:22,backgroundColor:colors.forestSoft,alignItems:'center',justifyContent:'center'},updateCopy:{flex:1,marginHorizontal:spacing.md},updateLabel:{fontSize:9,fontWeight:'800',letterSpacing:1.2,color:colors.gold},updateTitle:{...typography.label,color:colors.white,marginVertical:5},updateMeta:{...typography.caption,color:'#AFC1BA'},recentCard:{marginHorizontal:spacing.lg,backgroundColor:colors.surface,borderRadius:radius.lg,overflow:'hidden',flexDirection:'row',borderWidth:1,borderColor:colors.line},recentArt:{width:105,minHeight:130,backgroundColor:'#DCC5A8',alignItems:'center',justifyContent:'center'},recentEmoji:{fontSize:47},recentCopy:{flex:1,padding:spacing.md},recentType:{fontSize:9,fontWeight:'800',letterSpacing:1.3,color:colors.gold},recentTitle:{...typography.cardTitle,fontSize:20,marginVertical:5},liveLink:{...typography.caption,fontWeight:'800',color:colors.gold,marginTop:spacing.md},bottomSpace:{height:115}
+});
