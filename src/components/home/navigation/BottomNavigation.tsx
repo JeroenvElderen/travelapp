@@ -8,7 +8,7 @@ import type { IconName } from '@/types/travel';
 const items: { label: string; accessibilityLabel: string; icon: IconName }[] = [
   { label: 'Home', accessibilityLabel: 'Home', icon: 'home' },
   { label: 'Explore', accessibilityLabel: 'Explore destinations', icon: 'explore' },
-  { label: 'Move', accessibilityLabel: 'Moving Abroad', icon: 'plane' },
+  { label: 'Planner', accessibilityLabel: 'AI trip and relocation planner', icon: 'sparkle' },
   { label: 'Saved', accessibilityLabel: 'Saved places', icon: 'heart' },
   { label: 'Profile', accessibilityLabel: 'Profile', icon: 'profile' },
 ];

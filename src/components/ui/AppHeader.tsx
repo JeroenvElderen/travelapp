@@ -6,6 +6,7 @@ import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
 import { user } from '@/lib/homeData';
 import { colors, shadows, spacing } from '@/lib/theme';
+import { useAppMenu } from '@/components/navigation/AppMenuContext';
 
 type Props = {
   absolute?: boolean;
@@ -15,10 +16,11 @@ type Props = {
 /** The single, shared app header used on every top-level screen. */
 export function AppHeader({ absolute = false, light = false }: Props) {
   const insets = useSafeAreaInsets();
+  const openMenu = useAppMenu();
 
   return (
     <View style={[styles.header, absolute && styles.absolute, { paddingTop: insets.top + spacing.sm }]}>
-      <AnimatedPressable accessibilityLabel="Open menu" style={styles.menu}>
+      <AnimatedPressable accessibilityLabel="Open menu" onPress={openMenu} style={styles.menu}>
         <Icon name="menu" color={colors.white} />
       </AnimatedPressable>
       <View style={styles.brand} accessibilityLabel="Explorixa">

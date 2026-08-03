@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+import { AppMenu } from '@/components/navigation/AppMenu';
+import { AppMenuProvider } from '@/components/navigation/AppMenuContext';
+import { AIPlannerScreen } from '@/components/planner/AIPlannerScreen';
+
 import { ExploreScreen } from '@/components/explore/ExploreScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { MovingAbroadScreen } from '@/components/moving/MovingAbroadScreen';
@@ -15,6 +19,7 @@ import { countryGuides, type SupportedGuideCountry } from '@/lib/countryGuides';
 
 export default function IndexRoute() {
   const [tab, setTab] = useState('Home');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [guideCountry, setGuideCountry] = useState<SupportedGuideCountry>('Italy');
   const openGuide = (country: string) => {
     if (country in countryGuides) {
@@ -22,15 +27,18 @@ export default function IndexRoute() {
       setTab('CountryGuide');
     }
   };
-  if (tab === 'CountryGuide') return <CountryGuideScreen key={guideCountry} guide={countryGuides[guideCountry]} onBack={() => setTab('Move')} />;
-  if (tab === 'VisaExplorer') return <VisaExplorerScreen onBack={() => setTab('Move')} />;
-  if (tab === 'CityComparison') return <CityComparisonScreen onBack={() => setTab('Move')} />;
-  if (tab === 'CostCalculator') return <CostCalculatorScreen onBack={() => setTab('Move')} />;
-  if (tab === 'MovingChecklist') return <MovingChecklistScreen onBack={() => setTab('Move')} />;
-  if (tab === 'CountryMatch') return <CountryMatchScreen onBack={() => setTab('Move')} />;
-  if (tab === 'Explore') return <ExploreScreen onTabChange={setTab} />;
-  if (tab === 'Saved') return <SavedScreen onTabChange={setTab} />;
-  if (tab === 'Move') return <MovingAbroadScreen onTabChange={setTab} onOpenCountry={openGuide} onOpenVisa={() => setTab('VisaExplorer')} onOpenComparison={() => setTab('CityComparison')} onOpenCalculator={() => setTab('CostCalculator')} onOpenChecklist={() => setTab('MovingChecklist')} onOpenCountryMatch={() => setTab('CountryMatch')} />;
-  if (tab === 'Profile') return <ProfileScreen onTabChange={setTab} />;
-  return <HomeScreen onTabChange={setTab} />;
+  let screen;
+  if (tab === 'CountryGuide') screen = <CountryGuideScreen key={guideCountry} guide={countryGuides[guideCountry]} onBack={() => setTab('Move')} />;
+  else if (tab === 'VisaExplorer') screen = <VisaExplorerScreen onBack={() => setTab('Move')} />;
+  else if (tab === 'CityComparison') screen = <CityComparisonScreen onBack={() => setTab('Move')} />;
+  else if (tab === 'CostCalculator') screen = <CostCalculatorScreen onBack={() => setTab('Move')} />;
+  else if (tab === 'MovingChecklist') screen = <MovingChecklistScreen onBack={() => setTab('Move')} />;
+  else if (tab === 'CountryMatch') screen = <CountryMatchScreen onBack={() => setTab('Move')} />;
+  else if (tab === 'Planner') screen = <AIPlannerScreen onBack={() => setTab('Home')} onOpenGuide={openGuide} />;
+  else if (tab === 'Explore') screen = <ExploreScreen onTabChange={setTab} />;
+  else if (tab === 'Saved') screen = <SavedScreen onTabChange={setTab} />;
+  else if (tab === 'Move') screen = <MovingAbroadScreen onTabChange={setTab} onOpenCountry={openGuide} onOpenVisa={() => setTab('VisaExplorer')} onOpenComparison={() => setTab('CityComparison')} onOpenCalculator={() => setTab('CostCalculator')} onOpenChecklist={() => setTab('MovingChecklist')} onOpenCountryMatch={() => setTab('CountryMatch')} />;
+  else if (tab === 'Profile') screen = <ProfileScreen onTabChange={setTab} />;
+  else screen = <HomeScreen onTabChange={setTab} />;
+  return <AppMenuProvider onOpen={() => setMenuOpen(true)}>{screen}<AppMenu visible={menuOpen} onClose={() => setMenuOpen(false)} onNavigate={setTab}/></AppMenuProvider>;
 }
