@@ -2,38 +2,24 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { countries, deadlines, movingPlans } from '@/lib/movingData';
-import { user } from '@/lib/homeData';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 
 type Props = { onTabChange?: (tab: string) => void };
 
 export function MovingAbroadScreen({ onTabChange }: Props) {
-  const insets = useSafeAreaInsets();
   const [activePlan, setActivePlan] = useState(movingPlans[0]);
   const progress = Math.round((activePlan.completedSteps / activePlan.totalSteps) * 100);
 
   return <View style={s.root}>
     <StatusBar style="dark" />
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
-      <View style={[s.appHeader, { paddingTop: insets.top + spacing.sm }]}>
-        <AnimatedPressable accessibilityLabel="Open menu" style={s.menuButton}>
-          <Icon name="menu" color={colors.white}/>
-        </AnimatedPressable>
-        <View style={s.brand}>
-          <Text style={s.brandMark}>⌁⌁</Text>
-          <Text style={s.brandName}>Explorixa <Text style={s.brandGold}>✦</Text></Text>
-        </View>
-        <View>
-          <Image source={user.avatar} style={s.avatar} contentFit="cover" />
-          <View style={s.avatarDot}/>
-        </View>
-      </View>
+      <AppHeader />
       <View style={s.hero}>
         <View style={s.heroTop}><View><Text style={s.eyebrow}>EXPLORIXA · MOVE</Text><Text style={s.heroTitle}>Your life, somewhere new.</Text></View><AnimatedPressable accessibilityLabel="Moving alerts" style={s.alert}><Icon name="bell" color={colors.white} size={21}/><View style={s.dot}/></AnimatedPressable></View>
         <Text style={s.heroCopy}>Research countries, compare real costs and turn a possibility into a plan.</Text>

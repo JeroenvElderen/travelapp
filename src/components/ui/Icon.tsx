@@ -38,6 +38,12 @@ function Glyph({ name, color, strokeWidth }: GlyphProps & { name: IconName }) {
     case 'document': return <><Path d="M6 3h8l4 4v14H6V3Z" fill="none" {...common}/><Path d="M14 3v5h4M9 13h6M9 17h5" fill="none" {...common}/></>;
     case 'bell': return <><Path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" fill="none" {...common}/><Path d="M10 21h4" fill="none" {...common}/></>;
     case 'plus': return <Path d="M12 5v14M5 12h14" fill="none" {...common}/>;
+    case 'clock': return <><Circle cx="12" cy="12" r="9" fill="none" {...common}/><Path d="M12 7v5l3 2" fill="none" {...common}/></>;
+    case 'briefcase': return <><Rect x="3" y="7" width="18" height="14" rx="2" fill="none" {...common}/><Path d="M8 7V4h8v3M8 7v14M16 7v14" fill="none" {...common}/></>;
+    case 'credit-card': return <><Rect x="3" y="5" width="18" height="14" rx="2" fill="none" {...common}/><Path d="M3 10h18M7 15h3" fill="none" {...common}/></>;
+    case 'globe': return <><Circle cx="12" cy="12" r="9" fill="none" {...common}/><Path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none" {...common}/></>;
+    case 'pencil': return <><Path d="m4 20 4-1 11-11-3-3L5 16l-1 4Z" fill="none" {...common}/><Path d="m14 7 3 3" fill="none" {...common}/></>;
+    case 'settings': return <><Circle cx="12" cy="12" r="3" fill="none" {...common}/><Path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" fill="none" {...common}/></>;
   }
 }
 

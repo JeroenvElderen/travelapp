@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExploreMap } from '@/components/explore/ExploreMap';
 import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 import type { ExplorePlace } from '@/lib/explorePlaces';
 import type { IconName } from '@/types/travel';
@@ -21,19 +21,14 @@ const filters: { label: string; icon: IconName }[] = [
 type Props = { onTabChange?: (tab: string) => void };
 
 export function ExploreScreen({ onTabChange }: Props) {
-  const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedPlace, setSelectedPlace] = useState<ExplorePlace | null>(null);
 
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <AnimatedPressable accessibilityLabel="Open menu" style={styles.roundDark}><Icon name="menu" color={colors.white} /></AnimatedPressable>
-          <View style={styles.heading}><Text style={styles.title}>Explore<Text style={styles.spark}>✦</Text></Text><Text style={styles.subtitle}>Discover hidden gems around the world</Text></View>
-          <Image source="https://images.unsplash.com/photo-1521119989659-a83eee488004?w=200" style={styles.avatar} contentFit="cover" />
-        </View>
+      <View style={styles.header}>
+        <AppHeader />
         <View style={styles.search}><Icon name="search" size={25} /><TextInput accessibilityLabel="Search destinations" placeholder="Search places, activities, or destinations..." placeholderTextColor="#717875" style={styles.input}/><AnimatedPressable accessibilityLabel="Open filters" style={styles.filter}><Icon name="tune" color={colors.white}/></AnimatedPressable></View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
           {filters.map(item => { const active = item.label === activeFilter; return <AnimatedPressable key={item.label} onPress={() => setActiveFilter(item.label)} style={[styles.chip, active && styles.chipActive]}><Icon name={item.icon} size={20} color={active ? colors.white : colors.gold}/><Text style={[styles.chipText, active && styles.chipTextActive]}>{item.label}</Text></AnimatedPressable>; })}

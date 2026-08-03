@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { savedCollections, savedExperiences, savedPlaces } from '@/lib/savedData';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 
@@ -14,12 +14,11 @@ type Props = { onTabChange?: (tab: string) => void };
 const tabs = [{ label: 'All', count: 56 }, { label: 'Places', count: 32 }, { label: 'Collections', count: 6 }, { label: 'Experiences', count: 18 }];
 
 export function SavedScreen({ onTabChange }: Props) {
-  const insets = useSafeAreaInsets();
   const [active, setActive] = useState('All');
   return <View style={styles.root}>
     <StatusBar style="dark" />
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: 130 }]}>
-      <View style={styles.top}><AnimatedPressable accessibilityLabel="Open menu" style={styles.menu}><Icon name="menu" color={colors.white}/></AnimatedPressable><View style={styles.brand}><Text style={styles.brandMark}>⌁⌁</Text><Text style={styles.brandName}>Explorixa <Text style={styles.gold}>✦</Text></Text></View><Image source="https://images.unsplash.com/photo-1521119989659-a83eee488004?w=200" style={styles.avatar}/></View>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: 130 }]}>
+      <AppHeader />
       <Text style={styles.title}>Saved <Text style={styles.gold}>✦</Text></Text><Text style={styles.subtitle}>All the places you love in one place.</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>{tabs.map(tab => <AnimatedPressable key={tab.label} onPress={() => setActive(tab.label)} style={[styles.tab, active === tab.label && styles.tabActive]}><Icon name={tab.label === 'All' ? 'bookmark' : tab.label === 'Places' ? 'pin' : tab.label === 'Collections' ? 'folder' : 'sparkle'} size={19} color={active === tab.label ? colors.white : colors.ink}/><Text style={[styles.tabLabel, active === tab.label && styles.tabLabelActive]}>{tab.label}</Text><Text style={[styles.tabCount, active === tab.label && styles.tabLabelActive]}>{tab.count}</Text></AnimatedPressable>)}</ScrollView>
 

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ExploreScreen } from '@/components/explore/ExploreScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { MovingAbroadScreen } from '@/components/moving/MovingAbroadScreen';
+import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { SavedScreen } from '@/components/saved/SavedScreen';
 
 export default function IndexRoute() {
@@ -10,5 +11,6 @@ export default function IndexRoute() {
   if (tab === 'Explore') return <ExploreScreen onTabChange={setTab} />;
   if (tab === 'Saved') return <SavedScreen onTabChange={setTab} />;
   if (tab === 'Move') return <MovingAbroadScreen onTabChange={setTab} />;
+  if (tab === 'Profile') return <ProfileScreen onTabChange={setTab} />;
   return <HomeScreen onTabChange={setTab} />;
 }
