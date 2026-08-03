@@ -10,9 +10,9 @@ import { AppHeader } from '@/components/ui/AppHeader';
 import { countries, deadlines, movingPlans } from '@/lib/movingData';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 
-type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void; onOpenComparison?: () => void };
+type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void; onOpenComparison?: () => void; onOpenCalculator?: () => void };
 
-export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onOpenComparison }: Props) {
+export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onOpenComparison, onOpenCalculator }: Props) {
   const [activePlan, setActivePlan] = useState(movingPlans[0]);
   const progress = Math.round((activePlan.completedSteps / activePlan.totalSteps) * 100);
 
@@ -23,7 +23,7 @@ export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onO
       <View style={s.hero}>
         <View style={s.heroTop}><View><Text style={s.eyebrow}>EXPLORIXA · MOVE</Text><Text style={s.heroTitle}>Your life, somewhere new.</Text></View><AnimatedPressable accessibilityLabel="Moving alerts" style={s.alert}><Icon name="bell" color={colors.white} size={21}/><View style={s.dot}/></AnimatedPressable></View>
         <Text style={s.heroCopy}>Research countries, compare real costs and turn a possibility into a plan.</Text>
-        <View style={s.heroActions}><AnimatedPressable style={s.primaryButton}><Icon name="plus" size={18} color={colors.forest}/><Text style={s.primaryText}>Create a moving plan</Text></AnimatedPressable><AnimatedPressable style={s.circleButton} accessibilityLabel="Search countries"><Icon name="search" color={colors.white}/></AnimatedPressable></View>
+        <View style={s.heroActions}><AnimatedPressable onPress={onOpenCalculator} style={s.primaryButton}><Icon name="wallet" size={18} color={colors.forest}/><Text style={s.primaryText}>Calculate moving costs</Text></AnimatedPressable><AnimatedPressable style={s.circleButton} accessibilityLabel="Search countries"><Icon name="search" color={colors.white}/></AnimatedPressable></View>
       </View>
 
       <View style={s.body}>
@@ -39,7 +39,7 @@ export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onO
         </View>
 
         <View style={s.quickGrid}>
-          <QuickCard icon="wallet" label="Monthly budget" value={activePlan.budget}/>
+          <QuickCard icon="wallet" label="Monthly budget" value={activePlan.budget} onPress={onOpenCalculator}/>
           <QuickCard icon="document" label="Visa pathway" value={activePlan.visaRoute} onPress={onOpenVisa}/>
         </View>
 
