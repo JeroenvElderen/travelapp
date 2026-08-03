@@ -30,6 +30,7 @@ function Glyph({ name, color, strokeWidth }: GlyphProps & { name: IconName }) {
     case 'layers': return <><Path d="m12 3 9 5-9 5-9-5 9-5Z" fill="none" {...common}/><Path d="m3 12 9 5 9-5M3 16l9 5 9-5" fill="none" {...common}/></>;
     case 'locate': return <><Circle cx="12" cy="12" r="6" fill="none" {...common}/><Circle cx="12" cy="12" r="2" fill={color}/><Path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" {...common}/></>;
     case 'bookmark': return <Path d="M6 3h12v18l-6-4-6 4V3Z" fill="none" {...common}/>;
+    case 'folder': return <Path d="M3 6h7l2 2h9v11H3V6Z" fill="none" {...common}/>;
   }
 }
 

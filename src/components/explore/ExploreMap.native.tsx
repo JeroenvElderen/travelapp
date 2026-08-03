@@ -26,7 +26,7 @@ export function ExploreMap({ onSelectPlace }: Props) {
         <Mapbox.Camera defaultSettings={{ centerCoordinate: [14.59, 40.645], zoomLevel: 11.4 }} />
         <Mapbox.UserLocation visible />
         {explorePlaces.map(place => (
-          <Mapbox.PointAnnotation id={place.id} key={place.id} coordinate={[...place.coordinate]} onSelected={() => onSelectPlace(place)}>
+          <Mapbox.PointAnnotation id={place.id} key={place.id} coordinate={[...place.coordinate]} anchor={{ x: 0.5, y: 1 }} onSelected={() => onSelectPlace(place)}>
             <View style={styles.photoPin}><Image source={place.image} style={styles.pinImage}/><View style={styles.pinTail}/></View>
           </Mapbox.PointAnnotation>
         ))}
@@ -37,5 +37,5 @@ export function ExploreMap({ onSelectPlace }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},photoPin:{alignItems:'center'},pinImage:{width:56,height:56,borderRadius:28,borderWidth:3,borderColor:colors.white},pinTail:{width:0,height:0,borderLeftWidth:7,borderRightWidth:7,borderTopWidth:10,borderLeftColor:'transparent',borderRightColor:'transparent',borderTopColor:'#A89B86',marginTop:-2},mapActions:{position:'absolute',right:spacing.lg,bottom:110,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
+  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},photoPin:{width:62,height:68,alignItems:'center',justifyContent:'flex-start'},pinImage:{width:56,height:56,borderRadius:28,borderWidth:3,borderColor:colors.white},pinTail:{width:0,height:0,borderLeftWidth:7,borderRightWidth:7,borderTopWidth:10,borderLeftColor:'transparent',borderRightColor:'transparent',borderTopColor:'#A89B86',marginTop:-2},mapActions:{position:'absolute',right:spacing.lg,bottom:110,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
 });
