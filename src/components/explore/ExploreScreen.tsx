@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { FlatList, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ExploreMap } from '@/components/explore/ExploreMap';
-import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
+
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { AppHeader } from '@/components/ui/AppHeader';
 import { Icon } from '@/components/ui/Icon';
@@ -72,7 +72,6 @@ export function ExploreScreen({ onTabChange }: Props) {
       {selectedPlace && <View style={styles.placeCard} accessibilityLabel={`Details for ${selectedPlace.name}`}>
         <Image source={selectedPlace.image} style={styles.cardImage}/><View style={styles.details}><View style={styles.detailTop}><Text style={styles.eyebrow}>{exploreLayers.find(layer => layer.id === selectedPlace.layer)?.label.toUpperCase()}</Text><AnimatedPressable accessibilityLabel="Close place details" onPress={() => setSelectedPlace(null)}><Text style={styles.close}>×</Text></AnimatedPressable></View><Text style={styles.cardTitle}>{selectedPlace.name}</Text><Text style={styles.locationText}>{selectedPlace.region} · ★ {selectedPlace.rating}</Text><Text numberOfLines={2} style={styles.description}>{selectedPlace.description}</Text><View style={styles.actions}><AnimatedPressable onPress={() => toggleItem(selectedPlace.id,setSaved)} style={[styles.save,saved.includes(selectedPlace.id) && styles.actionActive]}><Icon name="bookmark" size={18} color={saved.includes(selectedPlace.id) ? colors.white : colors.ink}/><Text style={[styles.saveText,saved.includes(selectedPlace.id) && styles.actionTextActive]}>{saved.includes(selectedPlace.id) ? 'Saved' : 'Save'}</Text></AnimatedPressable><AnimatedPressable onPress={() => toggleItem(selectedPlace.id,setPlanned)} style={[styles.plan,planned.includes(selectedPlace.id) && styles.actionActive]}><Icon name="plus" size={18} color={planned.includes(selectedPlace.id) ? colors.white : colors.ink}/><Text style={[styles.saveText,planned.includes(selectedPlace.id) && styles.actionTextActive]}>{planned.includes(selectedPlace.id) ? 'In plan' : 'Add to plan'}</Text></AnimatedPressable></View></View>
       </View>}
-      <BottomNavigation active="Explore" onChange={onTabChange}/>
     </View>
   );
 }

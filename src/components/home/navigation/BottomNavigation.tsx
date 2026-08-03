@@ -15,7 +15,7 @@ const items: { label: string; accessibilityLabel: string; icon: IconName }[] = [
 
 type Props = { active?: string; onChange?: (tab: string) => void };
 
-export function BottomNavigation({ active = 'Home', onChange }: Props) {
+export function BottomNavigation({ active, onChange }: Props) {
   return (
     <View style={styles.shell}>
       <View style={styles.nav}>

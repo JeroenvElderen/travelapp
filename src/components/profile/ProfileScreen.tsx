@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
-import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
+
 import { AppHeader } from '@/components/ui/AppHeader';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
@@ -41,7 +41,6 @@ export function ProfileScreen({ onTabChange }: Props) {
       <ProfileSection title="Settings" rows={settings}/>
       <View style={styles.bottomSpace}/>
     </ScrollView>
-    <BottomNavigation active="Profile" onChange={onTabChange}/>
   </View>;
 }
 
