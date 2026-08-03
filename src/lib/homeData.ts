@@ -1,4 +1,4 @@
-import type { Category, Collection, Place, UserProfile } from '../types/travel';
+import type { Category, Collection, Place, UserProfile } from '@/types/travel';
 export const user: UserProfile = { firstName: 'Jeroen', avatar: 'https://images.unsplash.com/photo-1521119989659-a83eee488004?w=300' };
 export const heroImage = 'https://images.unsplash.com/photo-1464278533981-50106e6176b1?w=1400';
 export const featured = { name: 'Amalfi Coast', country: 'Italy', description: 'A breathtaking stretch of coastline where dramatic cliffs meet the sea.', image: 'https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?w=1400' };
