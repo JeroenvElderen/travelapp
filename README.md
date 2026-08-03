@@ -136,6 +136,51 @@ cp .env.example .env.local
 
 Only public build-time configuration may use the `EXPO_PUBLIC_` prefix. Do not commit `.env.local`, private API keys, service-role keys, signing credentials, or platform service files.
 
+### Mapbox setup
+
+The Explore tab uses `@rnmapbox/maps` on iOS and Android. It needs two different Mapbox tokens:
+
+| Variable | Token | Purpose |
+| --- | --- | --- |
+| `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` | Public `pk...` token | Loaded by the app at runtime to display the map and styles. Expo embeds this value in the client, so it must not be a secret token. |
+| `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` | Secret `sk...` token with `DOWNLOADS:READ` | Used only by native dependency installation/build infrastructure to download Mapbox SDK artifacts. Never prefix it with `EXPO_PUBLIC_`. |
+
+Copy the example and replace both placeholders:
+
+```bash
+cp .env.example .env.local
+```
+
+If the Mapbox package is not installed, install the Expo-compatible version with:
+
+```bash
+npx expo install @rnmapbox/maps
+```
+
+Then add `@rnmapbox/maps` to the `plugins` array in `app.json`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      "expo-router",
+      "@rnmapbox/maps"
+    ]
+  }
+}
+```
+
+The package contains native code and does not run in Expo Go. After installing it and adding the config plugin, create a new development build:
+
+```bash
+npx expo prebuild --clean
+npx expo run:ios
+# or
+npx expo run:android
+```
+
+For EAS, store `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` as a secret for every build environment that needs it. Keep `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` as a public or sensitive EAS environment variable. The Explore map renders an explicit configuration message when the public runtime token is absent, and the web target explains that the interactive native map requires an iOS or Android development build.
+
 ## Local development
 
 Install the exact dependency graph:

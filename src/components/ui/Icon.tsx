@@ -26,6 +26,10 @@ function Glyph({ name, color, strokeWidth }: GlyphProps & { name: IconName }) {
     case 'explore': return <><Circle cx="12" cy="12" r="9" fill="none" {...common}/><Path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" fill="none" {...common}/></>;
     case 'compass': return <><Circle cx="12" cy="12" r="9" fill="none" {...common}/><Path d="m16 8-2.5 5.5L8 16l2.5-5.5L16 8Z" fill="none" {...common}/></>;
     case 'sparkle': return <><Path d="m12 2 1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5L12 2Z" fill="none" {...common}/><Path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z" fill="none" {...common}/></>;
+    case 'camera': return <><Rect x="3" y="6" width="18" height="14" rx="2" fill="none" {...common}/><Path d="m8 6 1.5-2h5L16 6" fill="none" {...common}/><Circle cx="12" cy="13" r="4" fill="none" {...common}/></>;
+    case 'layers': return <><Path d="m12 3 9 5-9 5-9-5 9-5Z" fill="none" {...common}/><Path d="m3 12 9 5 9-5M3 16l9 5 9-5" fill="none" {...common}/></>;
+    case 'locate': return <><Circle cx="12" cy="12" r="6" fill="none" {...common}/><Circle cx="12" cy="12" r="2" fill={color}/><Path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" {...common}/></>;
+    case 'bookmark': return <Path d="M6 3h12v18l-6-4-6 4V3Z" fill="none" {...common}/>;
   }
 }
 
