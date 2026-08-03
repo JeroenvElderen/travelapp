@@ -8,6 +8,7 @@ import type { IconName } from '@/types/travel';
 const sections: { title: string; items: { label: string; detail: string; tab: string; icon: IconName }[] }[] = [
   { title: 'PLAN', items: [
     { label: 'AI trip & move planner', detail: 'Build an editable plan', tab: 'Planner', icon: 'sparkle' },
+    { label: 'Collaborative plans', detail: 'Plan trips and moves together', tab: 'Collaborate', icon: 'profile' },
     { label: 'Country match', detail: 'Find places that fit your life', tab: 'CountryMatch', icon: 'globe' },
   ] },
   { title: 'RELOCATION TOOLS', items: [

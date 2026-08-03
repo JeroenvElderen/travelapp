@@ -15,6 +15,7 @@ import { MovingChecklistScreen } from '@/components/moving/MovingChecklistScreen
 import { CountryMatchScreen } from '@/components/country-match/CountryMatchScreen';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { SavedScreen } from '@/components/saved/SavedScreen';
+import { CollaborativePlansScreen } from '@/components/collaboration/CollaborativePlansScreen';
 import { countryGuides, type SupportedGuideCountry } from '@/lib/countryGuides';
 
 export default function IndexRoute() {
@@ -39,6 +40,7 @@ export default function IndexRoute() {
   else if (tab === 'Saved') screen = <SavedScreen onTabChange={setTab} />;
   else if (tab === 'Move') screen = <MovingAbroadScreen onTabChange={setTab} onOpenCountry={openGuide} onOpenVisa={() => setTab('VisaExplorer')} onOpenComparison={() => setTab('CityComparison')} onOpenCalculator={() => setTab('CostCalculator')} onOpenChecklist={() => setTab('MovingChecklist')} onOpenCountryMatch={() => setTab('CountryMatch')} />;
   else if (tab === 'Profile') screen = <ProfileScreen onTabChange={setTab} />;
+  else if (tab === 'Collaborate') screen = <CollaborativePlansScreen />;
   else screen = <HomeScreen onTabChange={setTab} />;
   return <AppMenuProvider onOpen={() => setMenuOpen(true)}>{screen}<AppMenu visible={menuOpen} onClose={() => setMenuOpen(false)} onNavigate={setTab}/></AppMenuProvider>;
 }
