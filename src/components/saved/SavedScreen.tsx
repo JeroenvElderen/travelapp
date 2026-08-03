@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
+
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
 import { AppHeader } from '@/components/ui/AppHeader';
@@ -31,7 +31,6 @@ export function SavedScreen({ onTabChange }: Props) {
       <SectionTitle title="Saved experiences" />
       <View style={styles.experiences}>{savedExperiences.map((item, index) => <View key={item.id} style={[styles.experience, index > 0 && styles.experienceBorder]}><Image source={item.image} style={styles.experienceImage}/><View style={styles.experienceInfo}><Text style={styles.experienceTitle}>{item.title}</Text><Text style={styles.muted}>{item.country}</Text><View style={styles.meta}><Text style={styles.metaText}>◷ {item.duration}</Text><Text style={styles.metaText}>♙ {item.group}</Text><Text style={styles.metaText}>◇ From ${item.price}</Text></View></View><AnimatedPressable accessibilityLabel={`Remove ${item.title} from saved`} style={styles.bookmark}><Icon name="bookmark" size={20}/></AnimatedPressable><Icon name="more"/></View>)}</View>
     </ScrollView>
-    <BottomNavigation active="Saved" onChange={onTabChange}/>
   </View>;
 }
 

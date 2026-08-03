@@ -20,7 +20,7 @@ export function AppHeader({ absolute = false, light = false }: Props) {
 
   return (
     <View style={[styles.header, absolute && styles.absolute, { paddingTop: insets.top + spacing.sm }]}>
-      <AnimatedPressable accessibilityLabel="Open menu" onPress={openMenu} style={styles.menu}>
+      <AnimatedPressable accessibilityHint="Opens navigation to every section" accessibilityLabel="Open main menu" hitSlop={8} onPress={openMenu} style={styles.menu}>
         <Icon name="menu" color={colors.white} />
       </AnimatedPressable>
       <View style={styles.brand} accessibilityLabel="Explorixa">
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   absolute: { position: 'absolute', top: 0, left: 0, right: 0 },
-  menu: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.forest, alignItems: 'center', justifyContent: 'center', ...shadows.soft },
+  menu: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.forest, alignItems: 'center', justifyContent: 'center', ...shadows.soft },
   brand: { alignItems: 'center' },
   brandName: { marginTop: -spacing.sm, fontFamily: 'Georgia', fontSize: 29, fontWeight: '700', color: colors.ink },
   brandNameLight: { color: colors.white },

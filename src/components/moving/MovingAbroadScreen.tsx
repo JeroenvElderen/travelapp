@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
-import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
+
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Icon } from '@/components/ui/Icon';
 import { AppHeader } from '@/components/ui/AppHeader';
@@ -56,7 +56,6 @@ export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onO
       </View>
       <View style={s.bottomSpace}/>
     </ScrollView>
-    <BottomNavigation active="Move" onChange={onTabChange}/>
   </View>;
 }
 
