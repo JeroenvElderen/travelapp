@@ -10,9 +10,9 @@ import { AppHeader } from '@/components/ui/AppHeader';
 import { countries, deadlines, movingPlans } from '@/lib/movingData';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 
-type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void };
+type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void; onOpenComparison?: () => void };
 
-export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa }: Props) {
+export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onOpenComparison }: Props) {
   const [activePlan, setActivePlan] = useState(movingPlans[0]);
   const progress = Math.round((activePlan.completedSteps / activePlan.totalSteps) * 100);
 
@@ -46,7 +46,7 @@ export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa }: P
         <View style={s.sectionHeading}><View><Text style={s.kicker}>NEXT UP</Text><Text style={s.heading}>Moving timeline</Text></View><Text style={s.link}>Full timeline</Text></View>
         <View style={s.timelineCard}>{deadlines.map((item, index) => <View key={item.title} style={[s.deadline, index > 0 && s.deadlineBorder]}><View style={[s.dateBox, item.tone === 'green' && s.dateBoxGreen]}><Text style={s.day}>{item.day}</Text><Text style={s.month}>{item.month}</Text></View><View style={s.deadlineCopy}><Text style={s.deadlineTitle}>{item.title}</Text><Text style={s.meta}>{item.detail}</Text></View><Icon name="check" color={colors.gold} size={20}/></View>)}</View>
 
-        <View style={s.sectionHeading}><View><Text style={s.kicker}>COMPARE</Text><Text style={s.heading}>Countries on your radar</Text></View><Text style={s.link}>Edit</Text></View>
+        <View style={s.sectionHeading}><View><Text style={s.kicker}>COMPARE</Text><Text style={s.heading}>Cities on your radar</Text></View><AnimatedPressable onPress={onOpenComparison}><Text style={s.link}>Compare cities →</Text></AnimatedPressable></View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.countryRow}>{countries.map(country => <AnimatedPressable key={country.name} accessibilityLabel={`Open ${country.name} living guide`} onPress={() => onOpenCountry?.(country.name)} style={s.countryCard}><View style={s.countryTop}><Text style={s.countryFlag}>{country.flag}</Text><View style={s.match}><Text style={s.matchText}>{country.match} match</Text></View></View><Text style={s.countryName}>{country.name}</Text><Text style={s.meta}>{country.city} estimate</Text><Text style={s.cost}>{country.monthly}<Text style={s.costSuffix}> / mo</Text></Text><Text style={s.guideLink}>Read complete living guide →</Text></AnimatedPressable>)}</ScrollView>
 
         <View style={s.updateCard}><View style={s.updateIcon}><Icon name="bell" color={colors.gold}/></View><View style={s.updateCopy}><Text style={s.updateLabel}>OFFICIAL UPDATE · PORTUGAL</Text><Text style={s.updateTitle}>Residence permit appointment process updated</Text><Text style={s.updateMeta}>Verified 2 days ago · Official source</Text></View><Icon name="arrow" color={colors.white}/></View>
