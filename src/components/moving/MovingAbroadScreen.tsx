@@ -10,9 +10,9 @@ import { AppHeader } from '@/components/ui/AppHeader';
 import { countries, deadlines, movingPlans } from '@/lib/movingData';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 
-type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void; onOpenComparison?: () => void; onOpenCalculator?: () => void };
+type Props = { onTabChange?: (tab: string) => void; onOpenCountry?: (country: string) => void; onOpenVisa?: () => void; onOpenComparison?: () => void; onOpenCalculator?: () => void; onOpenChecklist?: () => void };
 
-export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onOpenComparison, onOpenCalculator }: Props) {
+export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onOpenComparison, onOpenCalculator, onOpenChecklist }: Props) {
   const [activePlan, setActivePlan] = useState(movingPlans[0]);
   const progress = Math.round((activePlan.completedSteps / activePlan.totalSteps) * 100);
 
@@ -35,7 +35,7 @@ export function MovingAbroadScreen({ onTabChange, onOpenCountry, onOpenVisa, onO
         <View style={s.progressCard}>
           <View style={s.progressTop}><View style={s.progressRing}><Text style={s.progressNumber}>{progress}%</Text></View><View style={s.progressInfo}><Text style={s.cardEyebrow}>ACTIVE PLAN</Text><Text style={s.cardTitle}>{activePlan.country}</Text><Text style={s.meta}>{activePlan.cities} · {activePlan.household}</Text></View><Icon name="arrow" size={22}/></View>
           <View style={s.track}><View style={[s.fill, { width: `${progress}%` }]}/></View>
-          <View style={s.progressFooter}><Text style={s.progressLabel}>{activePlan.completedSteps} of {activePlan.totalSteps} planning steps complete</Text><Text style={s.next}>Continue plan →</Text></View>
+          <View style={s.progressFooter}><Text style={s.progressLabel}>{activePlan.completedSteps} of {activePlan.totalSteps} planning steps complete</Text><AnimatedPressable onPress={onOpenChecklist}><Text style={s.next}>Continue plan →</Text></AnimatedPressable></View>
         </View>
 
         <View style={s.quickGrid}>
