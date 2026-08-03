@@ -4,6 +4,7 @@ import { ExploreScreen } from '@/components/explore/ExploreScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { MovingAbroadScreen } from '@/components/moving/MovingAbroadScreen';
 import { CountryGuideScreen } from '@/components/moving/CountryGuideScreen';
+import { VisaExplorerScreen } from '@/components/moving/VisaExplorerScreen';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { SavedScreen } from '@/components/saved/SavedScreen';
 import { countryGuides, type SupportedGuideCountry } from '@/lib/countryGuides';
@@ -18,9 +19,10 @@ export default function IndexRoute() {
     }
   };
   if (tab === 'CountryGuide') return <CountryGuideScreen key={guideCountry} guide={countryGuides[guideCountry]} onBack={() => setTab('Move')} />;
+  if (tab === 'VisaExplorer') return <VisaExplorerScreen onBack={() => setTab('Move')} />;
   if (tab === 'Explore') return <ExploreScreen onTabChange={setTab} />;
   if (tab === 'Saved') return <SavedScreen onTabChange={setTab} />;
-  if (tab === 'Move') return <MovingAbroadScreen onTabChange={setTab} onOpenCountry={openGuide} />;
+  if (tab === 'Move') return <MovingAbroadScreen onTabChange={setTab} onOpenCountry={openGuide} onOpenVisa={() => setTab('VisaExplorer')} />;
   if (tab === 'Profile') return <ProfileScreen onTabChange={setTab} />;
   return <HomeScreen onTabChange={setTab} />;
 }
