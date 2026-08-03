@@ -1,47 +1,76 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ExploreMap } from '@/components/explore/ExploreMap';
 import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
-import { Icon } from '@/components/ui/Icon';
 import { AppHeader } from '@/components/ui/AppHeader';
+import { Icon } from '@/components/ui/Icon';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
-import type { ExplorePlace } from '@/lib/explorePlaces';
-import type { IconName } from '@/types/travel';
-
-const filters: { label: string; icon: IconName }[] = [
-  { label: 'All', icon: 'compass' }, { label: 'Hidden Gems', icon: 'sparkle' },
-  { label: 'Nature', icon: 'mountain' }, { label: 'Beaches', icon: 'sun' },
-  { label: 'Culture', icon: 'city' },
-];
+import { exploreLayers, explorePlaces, type ExploreLayerId, type ExplorePlace } from '@/lib/explorePlaces';
 
 type Props = { onTabChange?: (tab: string) => void };
 
+const initialLayers: ExploreLayerId[] = ['attractions', 'beaches', 'hiking', 'museums', 'restaurants'];
+
 export function ExploreScreen({ onTabChange }: Props) {
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<'map' | 'list'>('map');
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [enabledLayers, setEnabledLayers] = useState<ExploreLayerId[]>(initialLayers);
   const [selectedPlace, setSelectedPlace] = useState<ExplorePlace | null>(null);
+  const [saved, setSaved] = useState<string[]>([]);
+  const [planned, setPlanned] = useState<string[]>([]);
+  const [areaSearches, setAreaSearches] = useState(0);
+
+  const places = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return explorePlaces.filter(place => enabledLayers.includes(place.layer) && (!term || `${place.name} ${place.region} ${place.tags.join(' ')}`.toLowerCase().includes(term)));
+  }, [enabledLayers, query]);
+  const activeLayerData = exploreLayers.filter(layer => enabledLayers.includes(layer.id));
+
+  const toggleLayer = (id: ExploreLayerId, available: boolean) => {
+    if (!available) return;
+    setEnabledLayers(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+  };
+  const toggleItem = (id: string, setter: typeof setSaved) => setter(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
 
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
       <View style={styles.header}>
         <AppHeader />
-        <View style={styles.search}><Icon name="search" size={25} /><TextInput accessibilityLabel="Search destinations" placeholder="Search places, activities, or destinations..." placeholderTextColor="#717875" style={styles.input}/><AnimatedPressable accessibilityLabel="Open filters" style={styles.filter}><Icon name="tune" color={colors.white}/></AnimatedPressable></View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          {filters.map(item => { const active = item.label === activeFilter; return <AnimatedPressable key={item.label} onPress={() => setActiveFilter(item.label)} style={[styles.chip, active && styles.chipActive]}><Icon name={item.icon} size={20} color={active ? colors.white : colors.gold}/><Text style={[styles.chipText, active && styles.chipTextActive]}>{item.label}</Text></AnimatedPressable>; })}
-        </ScrollView>
+        <View style={styles.search}>
+          <Icon name="search" size={22}/>
+          <TextInput value={query} onChangeText={setQuery} accessibilityLabel="Search places in the visible map area" placeholder="Search this area" placeholderTextColor={colors.muted} style={styles.input}/>
+          <AnimatedPressable accessibilityLabel="Open map layers" onPress={() => setLayersOpen(value => !value)} style={[styles.filter, layersOpen && styles.filterActive]}><Icon name="layers" color={colors.white}/></AnimatedPressable>
+        </View>
+        <View style={styles.toolbar}>
+          <View style={styles.segment}>
+            {(['map', 'list'] as const).map(item => <AnimatedPressable key={item} accessibilityState={{ selected: mode === item }} onPress={() => { setMode(item); setSelectedPlace(null); }} style={[styles.segmentButton, mode === item && styles.segmentActive]}><Text style={[styles.segmentText, mode === item && styles.segmentTextActive]}>{item === 'map' ? 'Map' : 'List'}</Text></AnimatedPressable>)}
+          </View>
+          <AnimatedPressable onPress={() => setAreaSearches(value => value + 1)} style={styles.areaButton}><Icon name="locate" size={17}/><Text style={styles.areaText}>{areaSearches ? 'Area updated' : 'Search this area'}</Text></AnimatedPressable>
+        </View>
       </View>
 
-      <ExploreMap onSelectPlace={setSelectedPlace} />
+      {layersOpen && <View style={styles.layerPanel} accessibilityLabel="Map layer selector">
+        <View style={styles.panelHeading}><View><Text style={styles.panelTitle}>Research layers</Text><Text style={styles.panelSubtitle}>Unavailable data is never shown as an average.</Text></View><AnimatedPressable accessibilityLabel="Close layers" onPress={() => setLayersOpen(false)}><Text style={styles.close}>×</Text></AnimatedPressable></View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {(['Travel', 'Relocation'] as const).map(group => <View key={group}><Text style={styles.groupLabel}>{group}</Text><View style={styles.layerGrid}>{exploreLayers.filter(layer => layer.group === group).map(layer => { const active = enabledLayers.includes(layer.id); return <AnimatedPressable key={layer.id} accessibilityState={{ checked: active, disabled: !layer.available }} onPress={() => toggleLayer(layer.id, layer.available)} style={[styles.layerChip, active && styles.layerChipActive, !layer.available && styles.layerChipDisabled]}><View style={[styles.dot,{backgroundColor:layer.available ? layer.color : '#B8B8B5'}]}/><Text style={[styles.layerText,active && styles.layerTextActive]}>{layer.label}</Text>{!layer.available && <Text style={styles.noData}>No data</Text>}</AnimatedPressable>; })}</View></View>)}
+        </ScrollView>
+      </View>}
+
+      {mode === 'map'
+        ? <ExploreMap places={places} onSelectPlace={setSelectedPlace}/>
+        : <FlatList data={places} keyExtractor={item => item.id} contentContainerStyle={styles.listContent} ListHeaderComponent={<View><Text style={styles.resultsTitle}>{places.length} places in this area</Text><Text style={styles.resultsSubtitle}>The same results and actions as the interactive map.</Text></View>} ListEmptyComponent={<View style={styles.empty}><Icon name="search" size={32}/><Text style={styles.emptyTitle}>No matching places</Text><Text style={styles.emptyText}>Try another search or enable more layers.</Text></View>} renderItem={({item}) => <AnimatedPressable onPress={() => setSelectedPlace(item)} style={styles.listCard}><Image source={item.image} style={styles.listImage}/><View style={styles.listDetails}><Text style={styles.listEyebrow}>{exploreLayers.find(layer => layer.id === item.layer)?.label}</Text><Text style={styles.listTitle}>{item.name}</Text><Text style={styles.listMeta}>{item.region} · ★ {item.rating}</Text><Text numberOfLines={2} style={styles.listDescription}>{item.description}</Text></View></AnimatedPressable>}/>
+      }
+
+      {mode === 'map' && <View style={styles.legend} accessibilityLabel="Map legend"><Text style={styles.legendTitle}>LEGEND</Text><ScrollView horizontal showsHorizontalScrollIndicator={false}>{activeLayerData.map(layer => <View key={layer.id} style={styles.legendItem}><View style={[styles.dot,{backgroundColor:layer.color}]}/><Text style={styles.legendText}>{layer.label}</Text></View>)}</ScrollView><Text numberOfLines={1} style={styles.source}>Sources: {Array.from(new Set(activeLayerData.map(layer => layer.source))).join(' · ') || 'No layers selected'}</Text></View>}
 
       {selectedPlace && <View style={styles.placeCard} accessibilityLabel={`Details for ${selectedPlace.name}`}>
-        <View style={styles.handle}/>
-        <Image source={selectedPlace.image} style={styles.cardImage} contentFit="cover"/>
-        <View style={styles.rating}><Text style={styles.ratingText}>★ {selectedPlace.rating}</Text></View>
-        <View style={styles.details}><View style={styles.detailTop}><Text style={styles.eyebrow}>REAL PLACE ✣</Text><AnimatedPressable accessibilityLabel="Close place details" onPress={() => setSelectedPlace(null)}><Text style={styles.close}>×</Text></AnimatedPressable></View><Text style={styles.cardTitle}>{selectedPlace.name}</Text><View style={styles.location}><Icon name="pin" size={17}/><Text style={styles.locationText}>{selectedPlace.region} · {selectedPlace.distance}</Text></View><Text style={styles.description}>{selectedPlace.description}</Text><View style={styles.tags}>{selectedPlace.tags.slice(0, 3).map(tag => <Text key={tag} style={styles.tag}>{tag}</Text>)}</View><View style={styles.actions}><AnimatedPressable style={styles.save}><Icon name="bookmark" size={20}/><Text style={styles.saveText}>Save</Text></AnimatedPressable><AnimatedPressable style={styles.explore}><Text style={styles.exploreText}>Explore</Text><Icon name="arrow" color={colors.white}/></AnimatedPressable></View></View>
+        <Image source={selectedPlace.image} style={styles.cardImage}/><View style={styles.details}><View style={styles.detailTop}><Text style={styles.eyebrow}>{exploreLayers.find(layer => layer.id === selectedPlace.layer)?.label.toUpperCase()}</Text><AnimatedPressable accessibilityLabel="Close place details" onPress={() => setSelectedPlace(null)}><Text style={styles.close}>×</Text></AnimatedPressable></View><Text style={styles.cardTitle}>{selectedPlace.name}</Text><Text style={styles.locationText}>{selectedPlace.region} · ★ {selectedPlace.rating}</Text><Text numberOfLines={2} style={styles.description}>{selectedPlace.description}</Text><View style={styles.actions}><AnimatedPressable onPress={() => toggleItem(selectedPlace.id,setSaved)} style={[styles.save,saved.includes(selectedPlace.id) && styles.actionActive]}><Icon name="bookmark" size={18} color={saved.includes(selectedPlace.id) ? colors.white : colors.ink}/><Text style={[styles.saveText,saved.includes(selectedPlace.id) && styles.actionTextActive]}>{saved.includes(selectedPlace.id) ? 'Saved' : 'Save'}</Text></AnimatedPressable><AnimatedPressable onPress={() => toggleItem(selectedPlace.id,setPlanned)} style={[styles.plan,planned.includes(selectedPlace.id) && styles.actionActive]}><Icon name="plus" size={18} color={planned.includes(selectedPlace.id) ? colors.white : colors.ink}/><Text style={[styles.saveText,planned.includes(selectedPlace.id) && styles.actionTextActive]}>{planned.includes(selectedPlace.id) ? 'In plan' : 'Add to plan'}</Text></AnimatedPressable></View></View>
       </View>}
       <BottomNavigation active="Explore" onChange={onTabChange}/>
     </View>
@@ -49,5 +78,5 @@ export function ExploreScreen({ onTabChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,backgroundColor:colors.canvas},header:{backgroundColor:colors.canvas,zIndex:2},headerRow:{height:92,flexDirection:'row',alignItems:'center',paddingHorizontal:spacing.lg},roundDark:{width:48,height:48,borderRadius:24,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center',...shadows.soft},heading:{flex:1,alignItems:'center'},title:{fontFamily:'Georgia',fontWeight:'700',fontSize:34,color:colors.ink},spark:{fontSize:22,color:colors.gold},subtitle:{fontSize:13,color:colors.muted,marginTop:3},avatar:{width:46,height:46,borderRadius:23,borderWidth:2,borderColor:colors.white},search:{height:54,marginHorizontal:spacing.lg,backgroundColor:colors.surface,borderRadius:radius.pill,flexDirection:'row',alignItems:'center',paddingLeft:spacing.md,paddingRight:5,...shadows.soft},input:{flex:1,fontSize:15,color:colors.ink,paddingHorizontal:spacing.md},filter:{width:44,height:44,borderRadius:22,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center'},filters:{gap:10,paddingHorizontal:spacing.lg,paddingVertical:spacing.sm},chip:{height:42,paddingHorizontal:17,borderRadius:radius.pill,backgroundColor:colors.surface,flexDirection:'row',gap:8,alignItems:'center',...shadows.soft},chipActive:{backgroundColor:colors.forest},chipText:{...typography.label,color:colors.ink},chipTextActive:{color:colors.white},placeCard:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:112,height:260,padding:14,paddingTop:20,borderRadius:32,backgroundColor:colors.surface,flexDirection:'row',zIndex:4,...shadows.floating},handle:{position:'absolute',top:7,left:'50%',marginLeft:-22,width:44,height:5,borderRadius:3,backgroundColor:'#C4C0B9'},cardImage:{width:'43%',height:'100%',borderRadius:22},rating:{position:'absolute',left:23,top:31,backgroundColor:'rgba(21,36,31,.65)',borderRadius:20,paddingVertical:4,paddingHorizontal:9},ratingText:{color:colors.white,fontSize:12,fontWeight:'700'},details:{flex:1,paddingLeft:15,paddingTop:2},detailTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},eyebrow:{fontSize:12,color:colors.gold,fontWeight:'700'},close:{fontSize:30,lineHeight:30,color:colors.muted,paddingHorizontal:4},cardTitle:{...typography.cardTitle,fontSize:23,marginTop:2,color:colors.ink},location:{flexDirection:'row',alignItems:'center',gap:5,marginTop:3},locationText:{flex:1,fontSize:11,color:colors.muted},description:{fontSize:12,lineHeight:17,color:colors.muted,marginTop:8},tags:{flexDirection:'row',gap:4,marginTop:8},tag:{fontSize:9,color:colors.ink,backgroundColor:'#F2ECE3',paddingHorizontal:6,paddingVertical:5,borderRadius:14},actions:{flex:1,flexDirection:'row',alignItems:'flex-end',gap:8},save:{height:40,paddingHorizontal:10,borderRadius:18,borderWidth:1,borderColor:'#DCCAAF',flexDirection:'row',alignItems:'center',gap:5},saveText:{fontWeight:'600',color:colors.ink},explore:{height:40,flex:1,borderRadius:18,backgroundColor:colors.forest,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6},exploreText:{color:colors.white,fontWeight:'600'},
+  root:{flex:1,backgroundColor:colors.canvas},header:{backgroundColor:colors.canvas,zIndex:3},search:{height:52,marginHorizontal:spacing.lg,backgroundColor:colors.surface,borderRadius:radius.pill,flexDirection:'row',alignItems:'center',paddingLeft:spacing.md,paddingRight:4,...shadows.soft},input:{flex:1,fontSize:15,color:colors.ink,paddingHorizontal:spacing.sm},filter:{width:44,height:44,borderRadius:22,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center'},filterActive:{backgroundColor:colors.gold},toolbar:{paddingHorizontal:spacing.lg,paddingVertical:spacing.sm,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},segment:{padding:3,borderRadius:radius.pill,backgroundColor:'#EAE4DB',flexDirection:'row'},segmentButton:{paddingVertical:7,paddingHorizontal:20,borderRadius:radius.pill},segmentActive:{backgroundColor:colors.surface,...shadows.soft},segmentText:{fontSize:13,fontWeight:'700',color:colors.muted,textTransform:'uppercase'},segmentTextActive:{color:colors.ink},areaButton:{flexDirection:'row',alignItems:'center',gap:6,padding:8},areaText:{fontSize:13,fontWeight:'700',color:colors.forest},layerPanel:{position:'absolute',top:195,left:spacing.sm,right:spacing.sm,maxHeight:'58%',zIndex:8,padding:spacing.lg,borderRadius:radius.xl,backgroundColor:colors.surface,...shadows.floating},panelHeading:{flexDirection:'row',justifyContent:'space-between'},panelTitle:{...typography.title,color:colors.ink},panelSubtitle:{fontSize:12,color:colors.muted,marginTop:2},close:{fontSize:30,lineHeight:30,color:colors.muted,paddingHorizontal:5},groupLabel:{marginTop:spacing.lg,marginBottom:spacing.xs,fontSize:12,fontWeight:'800',letterSpacing:1.2,color:colors.gold,textTransform:'uppercase'},layerGrid:{flexDirection:'row',flexWrap:'wrap',gap:8},layerChip:{height:38,paddingHorizontal:11,borderRadius:radius.pill,borderWidth:1,borderColor:colors.line,flexDirection:'row',alignItems:'center',gap:6},layerChipActive:{backgroundColor:colors.forest,borderColor:colors.forest},layerChipDisabled:{opacity:.55,backgroundColor:'#EFEDEA'},dot:{width:9,height:9,borderRadius:5},layerText:{fontSize:12,fontWeight:'600',color:colors.ink},layerTextActive:{color:colors.white},noData:{fontSize:9,color:colors.muted},legend:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:101,zIndex:2,paddingHorizontal:14,paddingVertical:10,borderRadius:radius.md,backgroundColor:'rgba(255,252,247,.94)',...shadows.soft},legendTitle:{fontSize:9,fontWeight:'800',letterSpacing:1,color:colors.muted,marginBottom:5},legendItem:{flexDirection:'row',alignItems:'center',gap:5,marginRight:14},legendText:{fontSize:11,color:colors.ink},source:{fontSize:9,color:colors.muted,marginTop:6},listContent:{paddingHorizontal:spacing.lg,paddingBottom:120},resultsTitle:{...typography.title,marginTop:spacing.sm,color:colors.ink},resultsSubtitle:{fontSize:13,color:colors.muted,marginBottom:spacing.md},listCard:{height:132,marginBottom:spacing.sm,padding:10,borderRadius:radius.lg,backgroundColor:colors.surface,flexDirection:'row',...shadows.soft},listImage:{width:112,height:112,borderRadius:radius.md},listDetails:{flex:1,padding:5,paddingLeft:13},listEyebrow:{fontSize:10,fontWeight:'800',letterSpacing:.8,color:colors.gold,textTransform:'uppercase'},listTitle:{...typography.cardTitle,fontSize:18,marginTop:2,color:colors.ink},listMeta:{fontSize:11,color:colors.muted,marginTop:2},listDescription:{fontSize:12,lineHeight:17,color:colors.muted,marginTop:7},empty:{alignItems:'center',padding:spacing.huge},emptyTitle:{...typography.cardTitle,marginTop:spacing.sm,color:colors.ink},emptyText:{color:colors.muted,marginTop:4},placeCard:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:170,height:214,padding:12,borderRadius:28,backgroundColor:colors.surface,flexDirection:'row',zIndex:5,...shadows.floating},cardImage:{width:'39%',height:'100%',borderRadius:20},details:{flex:1,paddingLeft:14},detailTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},eyebrow:{fontSize:10,color:colors.gold,fontWeight:'800',letterSpacing:.7},cardTitle:{...typography.cardTitle,fontSize:21,color:colors.ink},locationText:{fontSize:11,color:colors.muted,marginTop:3},description:{fontSize:12,lineHeight:17,color:colors.muted,marginTop:8},actions:{flex:1,flexDirection:'row',alignItems:'flex-end',gap:7},save:{height:39,paddingHorizontal:10,borderRadius:16,borderWidth:1,borderColor:'#DCCAAF',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:5},plan:{height:39,flex:1,paddingHorizontal:8,borderRadius:16,borderWidth:1,borderColor:'#DCCAAF',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:4},actionActive:{backgroundColor:colors.forest,borderColor:colors.forest},saveText:{fontSize:12,fontWeight:'700',color:colors.ink},actionTextActive:{color:colors.white},
 });
