@@ -19,21 +19,40 @@ export function BottomNavigation({ active, onChange }: Props) {
   return (
     <View style={styles.shell}>
       <View style={styles.nav}>
+        <View pointerEvents="none" style={styles.highlight} />
         {items.map((item) => {
           const selected = item.label === active;
+          const featured = item.label === 'Planner';
           return (
             <AnimatedPressable
               accessibilityLabel={item.accessibilityLabel}
+              accessibilityState={{ selected }}
               key={item.label}
               onPress={() => onChange?.(item.label)}
-              style={styles.item}
+              style={[styles.item, featured && styles.featuredItem]}
             >
-              <View style={[styles.iconShell, selected && styles.iconShellActive]}>
-                <Icon name={item.icon} color={selected ? colors.gold : colors.ink} size={24} />
+              <View
+                style={[
+                  styles.iconShell,
+                  selected && styles.iconShellActive,
+                  featured && styles.featuredIconShell,
+                  featured && selected && styles.featuredIconShellActive,
+                ]}
+              >
+                <Icon
+                  name={item.icon}
+                  color={featured ? colors.white : selected ? colors.forest : colors.muted}
+                  size={featured ? 25 : 23}
+                  strokeWidth={selected ? 2.2 : 1.8}
+                />
               </View>
-              <Text numberOfLines={1} style={[styles.label, selected && styles.active]}>
+              <Text
+                numberOfLines={1}
+                style={[styles.label, selected && styles.active, featured && styles.featuredLabel]}
+              >
                 {item.label}
               </Text>
+              {selected && <View style={[styles.indicator, featured && styles.featuredIndicator]} />}
             </AnimatedPressable>
           );
         })}
@@ -51,37 +70,90 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   nav: {
-    height: 82,
-    borderRadius: radius.xl,
+    height: 78,
+    borderRadius: 26,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 54, 42, 0.08)',
+    overflow: 'visible',
     ...shadows.floating,
+  },
+  highlight: {
+    position: 'absolute',
+    top: 1,
+    left: radius.lg,
+    right: radius.lg,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   item: {
     flex: 1,
+    height: '100%',
     minWidth: 0,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.xxs,
   },
+  featuredItem: {
+    paddingBottom: spacing.xxs,
+  },
   iconShell: {
-    width: 38,
+    width: 42,
     height: 32,
-    borderRadius: radius.pill,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconShellActive: {
-    backgroundColor: '#F3E8D7',
+    backgroundColor: '#E9F0E9',
+  },
+  featuredIconShell: {
+    width: 52,
+    height: 52,
+    marginTop: -22,
+    borderRadius: radius.pill,
+    backgroundColor: colors.forest,
+    borderWidth: 4,
+    borderColor: colors.surface,
+    shadowColor: colors.forest,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 9,
+  },
+  featuredIconShellActive: {
+    backgroundColor: colors.gold,
+    shadowColor: colors.gold,
+    shadowOpacity: 0.32,
   },
   label: {
     ...typography.caption,
-    color: colors.ink,
-    fontSize: 11,
+    color: colors.muted,
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 0.15,
+  },
+  featuredLabel: {
+    color: colors.forest,
+    fontWeight: '700',
   },
   active: {
-    color: colors.gold,
+    color: colors.forest,
     fontWeight: '700',
+  },
+  indicator: {
+    position: 'absolute',
+    bottom: 6,
+    width: 16,
+    height: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+  },
+  featuredIndicator: {
+    bottom: 5,
+    width: 20,
   },
 });
