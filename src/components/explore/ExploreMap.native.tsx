@@ -13,9 +13,9 @@ if (accessToken) {
   Mapbox.setAccessToken(accessToken);
 }
 
-type Props = { places: ExplorePlace[]; onSelectPlace: (place: ExplorePlace) => void };
+type Props = { places: ExplorePlace[]; selectedPlaceId?: string; onSelectPlace: (place: ExplorePlace) => void };
 
-export function ExploreMap({ places, onSelectPlace }: Props) {
+export function ExploreMap({ places, selectedPlaceId, onSelectPlace }: Props) {
   if (!accessToken) {
     return <View style={styles.missing}><Text style={styles.missingTitle}>Mapbox token required</Text><Text style={styles.missingText}>Add EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN to .env.local and restart Expo.</Text></View>;
   }
@@ -27,7 +27,7 @@ export function ExploreMap({ places, onSelectPlace }: Props) {
         <Mapbox.UserLocation visible />
         {places.map(place => (
           <Mapbox.PointAnnotation id={place.id} key={place.id} coordinate={[...place.coordinate]} anchor={{ x: 0.5, y: 1 }} onSelected={() => onSelectPlace(place)}>
-            <View style={styles.photoPin}><Image source={place.image} style={styles.pinImage}/><View style={styles.pinTail}/></View>
+            <View accessibilityLabel={`${place.name}, ${place.recommendation}`} style={[styles.photoPin,selectedPlaceId === place.id && styles.photoPinSelected]}><Image source={place.image} style={[styles.pinImage,selectedPlaceId === place.id && styles.pinImageSelected]}/><View style={styles.pinTail}/></View>
           </Mapbox.PointAnnotation>
         ))}
       </Mapbox.MapView>
@@ -37,5 +37,5 @@ export function ExploreMap({ places, onSelectPlace }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},photoPin:{width:62,height:68,alignItems:'center',justifyContent:'flex-start'},pinImage:{width:56,height:56,borderRadius:28,borderWidth:3,borderColor:colors.white},pinTail:{width:0,height:0,borderLeftWidth:7,borderRightWidth:7,borderTopWidth:10,borderLeftColor:'transparent',borderRightColor:'transparent',borderTopColor:'#A89B86',marginTop:-2},mapActions:{position:'absolute',right:spacing.lg,bottom:190,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
+  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},photoPin:{width:62,height:68,alignItems:'center',justifyContent:'flex-start'},photoPinSelected:{transform:[{scale:1.16}]},pinImage:{width:56,height:56,borderRadius:28,borderWidth:3,borderColor:colors.white},pinImageSelected:{borderColor:colors.gold,borderWidth:4},pinTail:{width:0,height:0,borderLeftWidth:7,borderRightWidth:7,borderTopWidth:10,borderLeftColor:'transparent',borderRightColor:'transparent',borderTopColor:'#A89B86',marginTop:-2},mapActions:{position:'absolute',right:spacing.lg,bottom:190,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
 });

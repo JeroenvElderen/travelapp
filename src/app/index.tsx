@@ -5,6 +5,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { CollaborativePlansScreen } from '@/components/collaboration/CollaborativePlansScreen';
 import { CountryMatchScreen } from '@/components/country-match/CountryMatchScreen';
 import { ExploreScreen } from '@/components/explore/ExploreScreen';
+import { PlaceDetailsScreen } from '@/components/explore/PlaceDetailsScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { BottomNavigation } from '@/components/home/navigation/BottomNavigation';
 import { AppMenu } from '@/components/navigation/AppMenu';
@@ -19,6 +20,7 @@ import { AIPlannerScreen } from '@/components/planner/AIPlannerScreen';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { SavedScreen } from '@/components/saved/SavedScreen';
 import { countryGuides, type SupportedGuideCountry } from '@/lib/countryGuides';
+import { explorePlaces } from '@/lib/explorePlaces';
 
 const bottomTabs = new Set(['Home', 'Explore', 'Planner', 'Saved', 'Profile']);
 
@@ -26,6 +28,7 @@ export default function IndexRoute() {
   const [history, setHistory] = useState(['Home']);
   const [menuOpen, setMenuOpen] = useState(false);
   const [guideCountry, setGuideCountry] = useState<SupportedGuideCountry>('Italy');
+  const [placeId, setPlaceId] = useState(explorePlaces[0].id);
   const tab = history[history.length - 1];
   const canGoBack = history.length > 1;
 
@@ -66,14 +69,15 @@ export default function IndexRoute() {
   };
 
   let screen;
-  if (tab === 'CountryGuide') screen = <CountryGuideScreen key={guideCountry} guide={countryGuides[guideCountry]} onBack={goBack} />;
+  if (tab === 'PlaceDetails') screen = <PlaceDetailsScreen place={explorePlaces.find(place => place.id === placeId) ?? explorePlaces[0]} onBack={goBack} />;
+  else if (tab === 'CountryGuide') screen = <CountryGuideScreen key={guideCountry} guide={countryGuides[guideCountry]} onBack={goBack} />;
   else if (tab === 'VisaExplorer') screen = <VisaExplorerScreen onBack={goBack} />;
   else if (tab === 'CityComparison') screen = <CityComparisonScreen onBack={goBack} />;
   else if (tab === 'CostCalculator') screen = <CostCalculatorScreen onBack={goBack} />;
   else if (tab === 'MovingChecklist') screen = <MovingChecklistScreen onBack={goBack} />;
   else if (tab === 'CountryMatch') screen = <CountryMatchScreen onBack={goBack} />;
   else if (tab === 'Planner') screen = <AIPlannerScreen onBack={goBack} onOpenGuide={openGuide} />;
-  else if (tab === 'Explore') screen = <ExploreScreen onTabChange={navigate} />;
+  else if (tab === 'Explore') screen = <ExploreScreen onOpenPlace={place => { setPlaceId(place.id); navigate('PlaceDetails'); }} />;
   else if (tab === 'Saved') screen = <SavedScreen onTabChange={navigate} />;
   else if (tab === 'Move') screen = <MovingAbroadScreen onTabChange={navigate} onOpenCountry={openGuide} onOpenVisa={() => navigate('VisaExplorer')} onOpenComparison={() => navigate('CityComparison')} onOpenCalculator={() => navigate('CostCalculator')} onOpenChecklist={() => navigate('MovingChecklist')} onOpenCountryMatch={() => navigate('CountryMatch')} />;
   else if (tab === 'Profile') screen = <ProfileScreen onTabChange={navigate} />;

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '@/lib/theme';
 import type { ExplorePlace } from '@/lib/explorePlaces';
 
-type Props = { places: ExplorePlace[]; onSelectPlace: (place: ExplorePlace) => void };
+type Props = { places: ExplorePlace[]; selectedPlaceId?: string; onSelectPlace: (place: ExplorePlace) => void };
 
 export function ExploreMap({ places, onSelectPlace }: Props) {
   return <View style={styles.root}><View style={styles.coast}/><Text style={styles.title}>Native map preview</Text><Text style={styles.text}>Mapbox needs an iOS or Android development build. Use the accessible list for all {places.length} results on web.</Text><View style={styles.previewPins}>{places.slice(0,5).map(place => <Text accessibilityRole="button" onPress={() => onSelectPlace(place)} key={place.id} style={styles.pin}>●</Text>)}</View></View>;
