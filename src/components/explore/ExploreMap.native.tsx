@@ -1,5 +1,6 @@
 import Mapbox from '@rnmapbox/maps';
 import { Image } from 'expo-image';
+import { useMemo, useRef, type ComponentProps } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
@@ -14,22 +15,69 @@ if (accessToken) {
 }
 
 type Props = { places: ExplorePlace[]; selectedPlaceId?: string; onSelectPlace: (place: ExplorePlace) => void };
+type ShapeSourcePressEvent = Parameters<NonNullable<ComponentProps<typeof Mapbox.ShapeSource>['onPress']>>[0];
+
+function MarkerImage({ place }: { place: ExplorePlace }) {
+  const image = useRef<{ refresh: () => void }>(null);
+
+  return (
+    <Mapbox.Image ref={image} name={`place-${place.id}`}>
+      <View collapsable={false} style={styles.markerImageMask}>
+        <Image
+          contentFit="cover"
+          onLoad={() => image.current?.refresh()}
+          source={place.image.replace('w=900', 'w=120&h=120&fit=crop')}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+    </Mapbox.Image>
+  );
+}
 
 export function ExploreMap({ places, selectedPlaceId, onSelectPlace }: Props) {
+  const camera = useRef<Mapbox.Camera>(null);
+  const source = useRef<Mapbox.ShapeSource>(null);
+  const shape = useMemo<GeoJSON.FeatureCollection<GeoJSON.Point>>(() => ({
+    type: 'FeatureCollection',
+    features: places.map(place => ({
+      type: 'Feature',
+      id: place.id,
+      geometry: { type: 'Point', coordinates: [...place.coordinate] },
+      properties: { id: place.id, imageId: `place-${place.id}` },
+    })),
+  }), [places]);
   if (!accessToken) {
     return <View style={styles.missing}><Text style={styles.missingTitle}>Mapbox token required</Text><Text style={styles.missingText}>Add EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN to .env.local and restart Expo.</Text></View>;
   }
 
+  const handlePress = async (event: ShapeSourcePressEvent) => {
+    const feature = event.features[0];
+    if (!feature) return;
+
+    if (feature.properties?.cluster) {
+      const zoomLevel = await source.current?.getClusterExpansionZoom(feature);
+      if (zoomLevel !== undefined && feature.geometry.type === 'Point') {
+        camera.current?.setCamera({ centerCoordinate: feature.geometry.coordinates, zoomLevel, animationDuration: 350 });
+      }
+      return;
+    }
+
+    const place = places.find(item => item.id === feature.properties?.id);
+    if (place) onSelectPlace(place);
+  };
+
   return (
     <View style={styles.root} accessibilityLabel="Interactive map of the Amalfi Coast">
       <Mapbox.MapView style={StyleSheet.absoluteFill} styleURL={Mapbox.StyleURL.Outdoors} logoEnabled attributionEnabled scaleBarEnabled={false}>
-        <Mapbox.Camera defaultSettings={{ centerCoordinate: [14.59, 40.645], zoomLevel: 11.4 }} />
+        <Mapbox.Camera ref={camera} defaultSettings={{ centerCoordinate: [14.59, 40.645], zoomLevel: 11.4 }} />
         <Mapbox.UserLocation visible />
-        {places.map(place => (
-          <Mapbox.PointAnnotation id={place.id} key={place.id} coordinate={[...place.coordinate]} anchor={{ x: 0.5, y: 1 }} onSelected={() => onSelectPlace(place)}>
-            <View accessibilityLabel={`${place.name}, ${place.recommendation}`} style={[styles.photoPin,selectedPlaceId === place.id && styles.photoPinSelected]}><Image source={place.image} style={[styles.pinImage,selectedPlaceId === place.id && styles.pinImageSelected]}/><View style={styles.pinTail}/></View>
-          </Mapbox.PointAnnotation>
-        ))}
+        <Mapbox.Images>{places.map(place => <MarkerImage key={place.id} place={place} />)}</Mapbox.Images>
+        <Mapbox.ShapeSource ref={source} id="explore-places" shape={shape} cluster clusterRadius={54} clusterMaxZoomLevel={14} onPress={handlePress} hitbox={{ width: 52, height: 52 }}>
+          <Mapbox.CircleLayer id="place-clusters" filter={['has', 'point_count']} style={{ circleRadius: 23, circleColor: colors.forest, circleStrokeWidth: 3, circleStrokeColor: colors.white }} />
+          <Mapbox.SymbolLayer id="place-cluster-count" filter={['has', 'point_count']} style={{ textField: ['get', 'point_count_abbreviated'], textSize: 14, textColor: colors.white, textAllowOverlap: true }} />
+          <Mapbox.CircleLayer id="place-photo-border" filter={['!', ['has', 'point_count']]} style={{ circleRadius: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 25, 23], circleColor: colors.white, circleStrokeWidth: 2, circleStrokeColor: colors.gold }} />
+          <Mapbox.SymbolLayer id="place-photos" filter={['!', ['has', 'point_count']]} style={{ iconImage: ['get', 'imageId'], iconSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 0.83, 0.76], iconAllowOverlap: true, iconIgnorePlacement: true }} />
+        </Mapbox.ShapeSource>
       </Mapbox.MapView>
       <View style={styles.mapActions}><AnimatedPressable accessibilityLabel="Find my location" style={styles.mapButton}><Icon name="locate"/></AnimatedPressable></View>
     </View>
@@ -37,5 +85,5 @@ export function ExploreMap({ places, selectedPlaceId, onSelectPlace }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},photoPin:{width:62,height:68,alignItems:'center',justifyContent:'flex-start'},photoPinSelected:{transform:[{scale:1.16}]},pinImage:{width:56,height:56,borderRadius:28,borderWidth:3,borderColor:colors.white},pinImageSelected:{borderColor:colors.gold,borderWidth:4},pinTail:{width:0,height:0,borderLeftWidth:7,borderRightWidth:7,borderTopWidth:10,borderLeftColor:'transparent',borderRightColor:'transparent',borderTopColor:'#A89B86',marginTop:-2},mapActions:{position:'absolute',right:spacing.lg,bottom:190,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
+  root:{flex:1,minHeight:420,overflow:'hidden'},missing:{flex:1,minHeight:420,alignItems:'center',justifyContent:'center',padding:spacing.xl,backgroundColor:'#DCE4CE'},missingTitle:{fontFamily:'Georgia',fontSize:22,fontWeight:'700',color:colors.ink},missingText:{maxWidth:300,marginTop:spacing.sm,textAlign:'center',lineHeight:20,color:colors.muted},markerImageMask:{width:60,height:60,borderRadius:30,overflow:'hidden'},mapActions:{position:'absolute',right:spacing.lg,bottom:190,gap:10},mapButton:{width:48,height:48,borderRadius:24,backgroundColor:colors.surface,alignItems:'center',justifyContent:'center',...shadows.soft},
 });
