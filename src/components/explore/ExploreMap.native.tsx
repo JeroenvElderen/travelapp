@@ -75,8 +75,9 @@ export function ExploreMap({ places, selectedPlaceId, onSelectPlace }: Props) {
         <Mapbox.ShapeSource ref={source} id="explore-places" shape={shape} cluster clusterRadius={54} clusterMaxZoomLevel={14} onPress={handlePress} hitbox={{ width: 52, height: 52 }}>
           <Mapbox.CircleLayer id="place-clusters" filter={['has', 'point_count']} style={{ circleRadius: 23, circleColor: colors.forest, circleStrokeWidth: 3, circleStrokeColor: colors.white }} />
           <Mapbox.SymbolLayer id="place-cluster-count" filter={['has', 'point_count']} style={{ textField: ['get', 'point_count_abbreviated'], textSize: 14, textColor: colors.white, textAllowOverlap: true }} />
-          <Mapbox.CircleLayer id="place-photo-border" filter={['!', ['has', 'point_count']]} style={{ circleRadius: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 25, 23], circleColor: colors.white, circleStrokeWidth: 2, circleStrokeColor: colors.gold }} />
-          <Mapbox.SymbolLayer id="place-photos" filter={['!', ['has', 'point_count']]} style={{ iconImage: ['get', 'imageId'], iconSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 0.83, 0.76], iconAllowOverlap: true, iconIgnorePlacement: true }} />
+          <Mapbox.SymbolLayer id="place-pointers" filter={['!', ['has', 'point_count']]} style={{ textField: '▼', textSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 28, 25], textColor: colors.gold, textHaloColor: colors.white, textHaloWidth: 2, textTranslate: [0, -8], textAllowOverlap: true, textIgnorePlacement: true }} />
+          <Mapbox.CircleLayer id="place-photo-border" filter={['!', ['has', 'point_count']]} style={{ circleRadius: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 25, 23], circleColor: colors.white, circleStrokeWidth: 2, circleStrokeColor: colors.gold, circleTranslate: [0, -30] }} />
+          <Mapbox.SymbolLayer id="place-photos" filter={['!', ['has', 'point_count']]} style={{ iconImage: ['get', 'imageId'], iconSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 0.83, 0.76], iconTranslate: [0, -30], iconAllowOverlap: true, iconIgnorePlacement: true }} />
         </Mapbox.ShapeSource>
       </Mapbox.MapView>
       <View style={styles.mapActions}><AnimatedPressable accessibilityLabel="Find my location" style={styles.mapButton}><Icon name="locate"/></AnimatedPressable></View>
