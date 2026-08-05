@@ -28,7 +28,13 @@
       "expo-image",
       "expo-font",
       "expo-secure-store",
-      "@rnmapbox/maps"
+      "@rnmapbox/maps",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Explorixa to use your location to draw a line from you to your searched destination."
+        }
+      ]
     ]
   }
 }
