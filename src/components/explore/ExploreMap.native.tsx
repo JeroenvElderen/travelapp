@@ -107,7 +107,6 @@ export function ExploreMap({ places, selectedPlaceId, onSelectPlace, route, deto
           <Mapbox.SymbolLayer id="place-photos" filter={['!', ['has', 'point_count']]} style={{ iconImage: ['get', 'imageId'], iconSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 0.83, 0.76], iconTranslate: [0, -30], iconAllowOverlap: true, iconIgnorePlacement: true }} />
         </Mapbox.ShapeSource>
       </Mapbox.MapView>
-      {route && <View style={styles.routeBadge}><Text style={styles.routeBadgeText}>Your location → {route.label}</Text><Text style={styles.routeDetails}>{Math.round(route.distanceMeters / 1000)} km · {Math.max(1, Math.round(route.durationSeconds / 60))} min by car · {places.length} places within {detourKm} km</Text></View>}
       <View style={styles.mapActions}><AnimatedPressable accessibilityLabel="Find my location" style={styles.mapButton}><Icon name="locate"/></AnimatedPressable></View>
     </View>
   );

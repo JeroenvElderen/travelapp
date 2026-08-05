@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import * as Location from 'expo-location';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
-import { FlatList, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExploreMap } from '@/components/explore/ExploreMap';
 
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
-import { AppHeader } from '@/components/ui/AppHeader';
+import { useAppMenu } from '@/components/navigation/AppMenuContext';
 import { Icon } from '@/components/ui/Icon';
 import { colors, radius, shadows, spacing, typography } from '@/lib/theme';
 import { distanceFromRouteKm, exploreLayers, explorePlaces, type ExploreLayerId, type ExplorePlace } from '@/lib/explorePlaces';
@@ -21,12 +22,12 @@ type RouteState = { origin: Coordinate; destination: Coordinate; geometry: Coord
 type DirectionsResponse = { code?: string; routes?: Array<{ distance: number; duration: number; geometry: { type: 'LineString'; coordinates: Coordinate[] } }> };
 
 export function ExploreScreen({ onOpenPlace }: Props) {
+  const insets = useSafeAreaInsets();
+  const openMenu = useAppMenu();
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<'map' | 'list'>('map');
   const [layersOpen, setLayersOpen] = useState(false);
   const [enabledLayers, setEnabledLayers] = useState<ExploreLayerId[]>(initialLayers);
   const [selectedPlace, setSelectedPlace] = useState<ExplorePlace | null>(null);
-  const [areaSearches, setAreaSearches] = useState(0);
   const [route, setRoute] = useState<RouteState | null>(null);
   const [routeStatus, setRouteStatus] = useState('');
   const [detourKm, setDetourKm] = useState(10);
@@ -37,7 +38,6 @@ export function ExploreScreen({ onOpenPlace }: Props) {
       && (!term || `${place.name} ${place.region} ${place.tags.join(' ')}`.toLowerCase().includes(term))
       && (!route || distanceFromRouteKm(place.coordinate, route.geometry) <= detourKm));
   }, [detourKm, enabledLayers, query, route]);
-  const activeLayerData = exploreLayers.filter(layer => enabledLayers.includes(layer.id));
 
   const planRoute = async () => {
     const destination = query.trim();
@@ -94,9 +94,7 @@ export function ExploreScreen({ onOpenPlace }: Props) {
         durationSeconds: bestRoute.duration,
       });
       setSelectedPlace(null);
-      setMode('map');
-      setLayersOpen(true);
-      setRouteStatus(`Showing the best driving route to ${destination}. Set your nearby distance in Research layers.`);
+      setRouteStatus(`Route to ${destination} · adjust nearby places in layers.`);
     } catch {
       setRoute(null);
       setRouteStatus('Could not get your location or destination right now. Please try again.');
@@ -111,28 +109,23 @@ export function ExploreScreen({ onOpenPlace }: Props) {
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <View style={styles.header}>
-        <AppHeader />
+      <ExploreMap places={places} selectedPlaceId={selectedPlace?.id} onSelectPlace={setSelectedPlace} route={route} detourKm={detourKm}/>
+
+      <View style={[styles.topControls, { top: insets.top + spacing.sm }]}>
+        <AnimatedPressable accessibilityHint="Opens navigation to every section" accessibilityLabel="Open main menu" onPress={openMenu} style={styles.roundButton}><Icon name="menu" color={colors.white}/></AnimatedPressable>
         <View style={styles.search}>
-          <Icon name="search" size={22}/>
-          <TextInput value={query} onChangeText={setQuery} accessibilityLabel="Search places in the visible map area" placeholder="Search places or destination" placeholderTextColor={colors.muted} style={styles.input}/>
-          <AnimatedPressable accessibilityLabel="Open map layers" onPress={() => setLayersOpen(value => !value)} style={[styles.filter, layersOpen && styles.filterActive]}><Icon name="layers" color={colors.white}/></AnimatedPressable>
+          <Icon name="search" size={21}/>
+          <TextInput value={query} onChangeText={setQuery} accessibilityLabel="Search places in the visible map area" placeholder="Where do you want to explore?" placeholderTextColor={colors.muted} style={styles.input}/>
+          {!!query && <AnimatedPressable accessibilityLabel="Clear search" hitSlop={8} onPress={() => { setQuery(''); setRouteStatus(''); }} style={styles.clearSearch}><Text style={styles.clearSearchText}>×</Text></AnimatedPressable>}
         </View>
-        <View style={styles.toolbar}>
-          <View style={styles.segment}>
-            {(['map', 'list'] as const).map(item => <AnimatedPressable key={item} accessibilityState={{ selected: mode === item }} onPress={() => { setMode(item); setSelectedPlace(null); }} style={[styles.segmentButton, mode === item && styles.segmentActive]}><Text style={[styles.segmentText, mode === item && styles.segmentTextActive]}>{item === 'map' ? 'Map' : 'List'}</Text></AnimatedPressable>)}
-          </View>
-          <AnimatedPressable onPress={() => setAreaSearches(value => value + 1)} style={styles.areaButton}><Icon name="search" size={17}/><Text style={styles.areaText}>{areaSearches ? 'Area updated' : 'Search this area'}</Text></AnimatedPressable>
-        </View>
-        <View style={styles.routeBar}>
-          <AnimatedPressable accessibilityLabel="Use my location and calculate the best driving route to the searched destination" onPress={planRoute} style={styles.routeButton}><Icon name="locate" size={17} color={colors.white}/><Text style={styles.routeText}>Navigate from my location</Text></AnimatedPressable>
-          {route && <AnimatedPressable accessibilityLabel="Clear destination route" onPress={() => { setRoute(null); setRouteStatus(''); }} style={styles.clearRoute}><Text style={styles.clearRouteText}>Clear</Text></AnimatedPressable>}
-        </View>
-        {!!routeStatus && <Text style={styles.routeStatus}>{routeStatus}</Text>}
+        <AnimatedPressable accessibilityLabel="Open map layers" accessibilityState={{ expanded: layersOpen }} onPress={() => setLayersOpen(value => !value)} style={[styles.roundButton, layersOpen && styles.filterActive]}><Icon name="layers" color={colors.white}/></AnimatedPressable>
       </View>
 
-      {layersOpen && <View style={styles.layerPanel} accessibilityLabel="Map layer selector">
-        <View style={styles.panelHeading}><View><Text style={styles.panelTitle}>Research layers</Text><Text style={styles.panelSubtitle}>Unavailable data is never shown as an average.</Text></View><AnimatedPressable accessibilityLabel="Close layers" onPress={() => setLayersOpen(false)}><Text style={styles.close}>×</Text></AnimatedPressable></View>
+      {!!query && !route && <AnimatedPressable accessibilityLabel="Use my location and navigate to the searched destination" onPress={planRoute} style={[styles.navigatePill, { top: insets.top + 76 }]}><Icon name="locate" size={16} color={colors.white}/><Text numberOfLines={1} style={styles.navigateText}>Route to {query.trim() || 'destination'}</Text></AnimatedPressable>}
+      {!!routeStatus && <View style={[styles.statusPill, { top: insets.top + (query && !route ? 126 : 76) }]}><Text numberOfLines={2} style={styles.routeStatus}>{routeStatus}</Text>{route && <AnimatedPressable accessibilityLabel="Clear destination route" onPress={() => { setRoute(null); setRouteStatus(''); }}><Text style={styles.clearRouteText}>Clear</Text></AnimatedPressable>}</View>}
+
+      {layersOpen && <View style={[styles.layerPanel, { top: insets.top + 76 }]} accessibilityLabel="Map layer selector">
+        <View style={styles.panelHeading}><View><Text style={styles.panelTitle}>Map layers</Text><Text style={styles.panelSubtitle}>Choose what appears on your map.</Text></View><AnimatedPressable accessibilityLabel="Close layers" onPress={() => setLayersOpen(false)}><Text style={styles.close}>×</Text></AnimatedPressable></View>
         <ScrollView showsVerticalScrollIndicator={false}>
           {route && <View style={styles.detourSection}>
             <View style={styles.detourHeading}><View><Text style={styles.detourTitle}>Places near your route</Text><Text style={styles.detourSubtitle}>Maximum distance from the navigation line</Text></View><Text style={styles.nearbyCount}>{places.length} nearby</Text></View>
@@ -142,14 +135,8 @@ export function ExploreScreen({ onOpenPlace }: Props) {
         </ScrollView>
       </View>}
 
-      {mode === 'map'
-        ? <ExploreMap places={places} selectedPlaceId={selectedPlace?.id} onSelectPlace={setSelectedPlace} route={route} detourKm={detourKm}/>
-        : <FlatList data={places} keyExtractor={item => item.id} contentContainerStyle={styles.listContent} ListHeaderComponent={<View><Text style={styles.resultsTitle}>{places.length} places in this area</Text><Text style={styles.resultsSubtitle}>The same results and actions as the interactive map.</Text></View>} ListEmptyComponent={<View style={styles.empty}><Icon name="search" size={32}/><Text style={styles.emptyTitle}>No matching places</Text><Text style={styles.emptyText}>Try another search or enable more layers.</Text></View>} renderItem={({item}) => <AnimatedPressable accessibilityLabel={`View details for ${item.name}`} onPress={() => onOpenPlace(item)} style={styles.listCard}><Image source={item.image} style={styles.listImage}/><View style={styles.listDetails}><Text style={styles.listEyebrow}>{exploreLayers.find(layer => layer.id === item.layer)?.label}</Text><Text style={styles.listTitle}>{item.name}</Text><Text style={styles.listMeta}>{item.region} · ★ {item.rating}</Text><Text numberOfLines={2} style={styles.listDescription}>{item.description}</Text></View></AnimatedPressable>}/>
-      }
+      <View pointerEvents="none" style={styles.resultPill}><Text style={styles.resultText}>{places.length} places</Text></View>
 
-      {mode === 'map' && <View style={styles.legend} accessibilityLabel="Map legend"><Text style={styles.legendTitle}>LEGEND</Text><ScrollView horizontal showsHorizontalScrollIndicator={false}>{activeLayerData.map(layer => <View key={layer.id} style={styles.legendItem}><View style={[styles.dot,{backgroundColor:layer.color}]}/><Text style={styles.legendText}>{layer.label}</Text></View>)}</ScrollView><Text numberOfLines={1} style={styles.source}>Sources: {Array.from(new Set(activeLayerData.map(layer => layer.source))).join(' · ') || 'No layers selected'}</Text></View>}
-
-      {selectedPlace && <AnimatedPressable accessibilityLabel="Close place preview" onPress={() => setSelectedPlace(null)} style={styles.dismissOverlay}><View /></AnimatedPressable>}
       {selectedPlace && <AnimatedPressable accessibilityHint="Opens the place details screen" accessibilityLabel={`View details for ${selectedPlace.name}`} onPress={() => onOpenPlace(selectedPlace)} style={styles.placeCard}>
         <Image source={selectedPlace.image} style={styles.cardImage}/><View style={styles.details}><View style={styles.detailTop}><Text style={styles.eyebrow}>{exploreLayers.find(layer => layer.id === selectedPlace.layer)?.label.toUpperCase()}</Text></View><Text style={styles.cardTitle}>{selectedPlace.name}</Text><Text style={styles.locationText}>{selectedPlace.region} · ★ {selectedPlace.rating} · {selectedPlace.duration}</Text><Text numberOfLines={2} style={styles.description}>{selectedPlace.recommendation}</Text><Text style={styles.viewDetails}>View details →</Text></View>
       </AnimatedPressable>}
@@ -158,5 +145,5 @@ export function ExploreScreen({ onOpenPlace }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,backgroundColor:colors.canvas},header:{backgroundColor:colors.canvas,zIndex:3},search:{height:52,marginHorizontal:spacing.lg,backgroundColor:colors.surface,borderRadius:radius.pill,flexDirection:'row',alignItems:'center',paddingLeft:spacing.md,paddingRight:4,...shadows.soft},input:{flex:1,fontSize:15,color:colors.ink,paddingHorizontal:spacing.sm},filter:{width:44,height:44,borderRadius:22,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center'},filterActive:{backgroundColor:colors.gold},toolbar:{paddingHorizontal:spacing.lg,paddingVertical:spacing.sm,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},routeBar:{paddingHorizontal:spacing.lg,paddingBottom:spacing.xs,flexDirection:'row',alignItems:'center',gap:8},routeButton:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,flex:1,paddingVertical:10,borderRadius:radius.pill,backgroundColor:colors.forest},routeText:{fontSize:13,fontWeight:'800',color:colors.white},clearRoute:{paddingVertical:10,paddingHorizontal:14,borderRadius:radius.pill,backgroundColor:'#EAE4DB'},clearRouteText:{fontSize:12,fontWeight:'800',color:colors.ink},routeStatus:{paddingHorizontal:spacing.lg,paddingBottom:spacing.sm,fontSize:12,color:colors.muted},detourSection:{marginTop:spacing.md,paddingBottom:spacing.md,borderBottomWidth:1,borderBottomColor:colors.line},detourHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8},detourTitle:{fontSize:13,fontWeight:'800',color:colors.ink},detourSubtitle:{fontSize:10,color:colors.muted,marginTop:2},nearbyCount:{fontSize:11,fontWeight:'800',color:colors.forest},detourOptions:{flexDirection:'row',gap:7,marginTop:10},detourChip:{flex:1,alignItems:'center',paddingVertical:7,borderRadius:radius.pill,backgroundColor:'#EAE4DB'},detourChipActive:{backgroundColor:colors.forest},detourChipText:{fontSize:11,fontWeight:'800',color:colors.muted},detourChipTextActive:{color:colors.white},segment:{padding:3,borderRadius:radius.pill,backgroundColor:'#EAE4DB',flexDirection:'row'},segmentButton:{paddingVertical:7,paddingHorizontal:20,borderRadius:radius.pill},segmentActive:{backgroundColor:colors.surface,...shadows.soft},segmentText:{fontSize:13,fontWeight:'700',color:colors.muted,textTransform:'uppercase'},segmentTextActive:{color:colors.ink},areaButton:{flexDirection:'row',alignItems:'center',gap:6,padding:8},areaText:{fontSize:13,fontWeight:'700',color:colors.forest},layerPanel:{position:'absolute',top:195,left:spacing.sm,right:spacing.sm,maxHeight:'58%',zIndex:8,padding:spacing.lg,borderRadius:radius.xl,backgroundColor:colors.surface,...shadows.floating},panelHeading:{flexDirection:'row',justifyContent:'space-between'},panelTitle:{...typography.title,color:colors.ink},panelSubtitle:{fontSize:12,color:colors.muted,marginTop:2},close:{fontSize:30,lineHeight:30,color:colors.muted,paddingHorizontal:5},groupLabel:{marginTop:spacing.lg,marginBottom:spacing.xs,fontSize:12,fontWeight:'800',letterSpacing:1.2,color:colors.gold,textTransform:'uppercase'},layerGrid:{flexDirection:'row',flexWrap:'wrap',gap:8},layerChip:{height:38,paddingHorizontal:11,borderRadius:radius.pill,borderWidth:1,borderColor:colors.line,flexDirection:'row',alignItems:'center',gap:6},layerChipActive:{backgroundColor:colors.forest,borderColor:colors.forest},layerChipDisabled:{opacity:.55,backgroundColor:'#EFEDEA'},dot:{width:9,height:9,borderRadius:5},layerText:{fontSize:12,fontWeight:'600',color:colors.ink},layerTextActive:{color:colors.white},noData:{fontSize:9,color:colors.muted},legend:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:101,zIndex:2,paddingHorizontal:14,paddingVertical:10,borderRadius:radius.md,backgroundColor:'rgba(255,252,247,.94)',...shadows.soft},legendTitle:{fontSize:9,fontWeight:'800',letterSpacing:1,color:colors.muted,marginBottom:5},legendItem:{flexDirection:'row',alignItems:'center',gap:5,marginRight:14},legendText:{fontSize:11,color:colors.ink},source:{fontSize:9,color:colors.muted,marginTop:6},listContent:{paddingHorizontal:spacing.lg,paddingBottom:120},resultsTitle:{...typography.title,marginTop:spacing.sm,color:colors.ink},resultsSubtitle:{fontSize:13,color:colors.muted,marginBottom:spacing.md},listCard:{height:132,marginBottom:spacing.sm,padding:10,borderRadius:radius.lg,backgroundColor:colors.surface,flexDirection:'row',...shadows.soft},listImage:{width:112,height:112,borderRadius:radius.md},listDetails:{flex:1,padding:5,paddingLeft:13},listEyebrow:{fontSize:10,fontWeight:'800',letterSpacing:.8,color:colors.gold,textTransform:'uppercase'},listTitle:{...typography.cardTitle,fontSize:18,marginTop:2,color:colors.ink},listMeta:{fontSize:11,color:colors.muted,marginTop:2},listDescription:{fontSize:12,lineHeight:17,color:colors.muted,marginTop:7},empty:{alignItems:'center',padding:spacing.huge},emptyTitle:{...typography.cardTitle,marginTop:spacing.sm,color:colors.ink},emptyText:{color:colors.muted,marginTop:4},dismissOverlay:{position:'absolute',top:0,right:0,bottom:0,left:0,zIndex:4},placeCard:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:170,height:188,padding:12,borderRadius:28,backgroundColor:colors.surface,flexDirection:'row',zIndex:5,...shadows.floating},cardImage:{width:'39%',height:'100%',borderRadius:20},details:{flex:1,padding:10,paddingLeft:14,justifyContent:'center'},detailTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},eyebrow:{fontSize:10,color:colors.gold,fontWeight:'800',letterSpacing:.7},cardTitle:{...typography.cardTitle,fontSize:21,color:colors.ink,marginTop:4},locationText:{fontSize:11,color:colors.muted,marginTop:3},description:{fontSize:12,lineHeight:17,color:colors.ink,marginTop:7,fontWeight:'600'},viewDetails:{fontSize:11,fontWeight:'800',color:colors.forest,marginTop:8},
+  root:{flex:1,backgroundColor:colors.canvas},topControls:{position:'absolute',left:spacing.sm,right:spacing.sm,zIndex:7,flexDirection:'row',alignItems:'center',gap:8},roundButton:{width:52,height:52,borderRadius:26,backgroundColor:colors.forest,alignItems:'center',justifyContent:'center',...shadows.soft},search:{height:52,flex:1,backgroundColor:'rgba(255,252,247,.96)',borderRadius:radius.pill,flexDirection:'row',alignItems:'center',paddingLeft:spacing.md,paddingRight:spacing.sm,...shadows.soft},input:{flex:1,fontSize:15,color:colors.ink,paddingHorizontal:spacing.sm},clearSearch:{width:28,height:28,alignItems:'center',justifyContent:'center'},clearSearchText:{fontSize:25,lineHeight:26,color:colors.muted},filterActive:{backgroundColor:colors.gold},navigatePill:{position:'absolute',alignSelf:'center',zIndex:6,maxWidth:'78%',paddingVertical:9,paddingHorizontal:15,borderRadius:radius.pill,backgroundColor:colors.forest,flexDirection:'row',alignItems:'center',gap:7,...shadows.soft},navigateText:{fontSize:12,fontWeight:'800',color:colors.white},statusPill:{position:'absolute',alignSelf:'center',zIndex:6,maxWidth:'82%',paddingVertical:8,paddingHorizontal:13,borderRadius:radius.pill,backgroundColor:'rgba(255,252,247,.96)',flexDirection:'row',alignItems:'center',gap:10,...shadows.soft},clearRouteText:{fontSize:12,fontWeight:'800',color:colors.gold},routeStatus:{flexShrink:1,fontSize:11,fontWeight:'600',color:colors.muted,textAlign:'center'},detourSection:{marginTop:spacing.md,paddingBottom:spacing.md,borderBottomWidth:1,borderBottomColor:colors.line},detourHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8},detourTitle:{fontSize:13,fontWeight:'800',color:colors.ink},detourSubtitle:{fontSize:10,color:colors.muted,marginTop:2},nearbyCount:{fontSize:11,fontWeight:'800',color:colors.forest},detourOptions:{flexDirection:'row',gap:7,marginTop:10},detourChip:{flex:1,alignItems:'center',paddingVertical:7,borderRadius:radius.pill,backgroundColor:'#EAE4DB'},detourChipActive:{backgroundColor:colors.forest},detourChipText:{fontSize:11,fontWeight:'800',color:colors.muted},detourChipTextActive:{color:colors.white},layerPanel:{position:'absolute',left:spacing.sm,right:spacing.sm,maxHeight:'62%',zIndex:8,padding:spacing.lg,borderRadius:radius.xl,backgroundColor:colors.surface,...shadows.floating},panelHeading:{flexDirection:'row',justifyContent:'space-between'},panelTitle:{...typography.title,color:colors.ink},panelSubtitle:{fontSize:12,color:colors.muted,marginTop:2},close:{fontSize:30,lineHeight:30,color:colors.muted,paddingHorizontal:5},groupLabel:{marginTop:spacing.lg,marginBottom:spacing.xs,fontSize:12,fontWeight:'800',letterSpacing:1.2,color:colors.gold,textTransform:'uppercase'},layerGrid:{flexDirection:'row',flexWrap:'wrap',gap:8},layerChip:{height:38,paddingHorizontal:11,borderRadius:radius.pill,borderWidth:1,borderColor:colors.line,flexDirection:'row',alignItems:'center',gap:6},layerChipActive:{backgroundColor:colors.forest,borderColor:colors.forest},layerChipDisabled:{opacity:.55,backgroundColor:'#EFEDEA'},dot:{width:9,height:9,borderRadius:5},layerText:{fontSize:12,fontWeight:'600',color:colors.ink},layerTextActive:{color:colors.white},noData:{fontSize:9,color:colors.muted},resultPill:{position:'absolute',left:spacing.md,bottom:108,zIndex:2,paddingVertical:8,paddingHorizontal:13,borderRadius:radius.pill,backgroundColor:'rgba(255,252,247,.94)',...shadows.soft},resultText:{fontSize:11,fontWeight:'800',color:colors.ink},placeCard:{position:'absolute',left:spacing.sm,right:spacing.sm,bottom:108,height:164,padding:10,borderRadius:26,backgroundColor:colors.surface,flexDirection:'row',zIndex:5,...shadows.floating},cardImage:{width:'39%',height:'100%',borderRadius:19},details:{flex:1,padding:8,paddingLeft:13,justifyContent:'center'},detailTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},eyebrow:{fontSize:10,color:colors.gold,fontWeight:'800',letterSpacing:.7},cardTitle:{...typography.cardTitle,fontSize:20,color:colors.ink,marginTop:3},locationText:{fontSize:11,color:colors.muted,marginTop:2},description:{fontSize:12,lineHeight:16,color:colors.ink,marginTop:6,fontWeight:'600'},viewDetails:{fontSize:11,fontWeight:'800',color:colors.forest,marginTop:6},
 });
