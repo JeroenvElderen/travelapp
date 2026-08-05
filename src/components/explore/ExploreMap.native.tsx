@@ -16,7 +16,7 @@ if (accessToken) {
 
 type Coordinate = readonly [number, number];
 type RouteState = { origin: Coordinate; destination: Coordinate; geometry: Coordinate[]; label: string; distanceMeters: number; durationSeconds: number };
-type Props = { places: ExplorePlace[]; selectedPlaceId?: string; onSelectPlace: (place: ExplorePlace) => void; route?: RouteState | null };
+type Props = { places: ExplorePlace[]; selectedPlaceId?: string; onSelectPlace: (place: ExplorePlace) => void; route?: RouteState | null; detourKm?: number };
 type ShapeSourcePressEvent = Parameters<NonNullable<ComponentProps<typeof Mapbox.ShapeSource>['onPress']>>[0];
 
 function MarkerImage({ place }: { place: ExplorePlace }) {
@@ -36,7 +36,7 @@ function MarkerImage({ place }: { place: ExplorePlace }) {
   );
 }
 
-export function ExploreMap({ places, selectedPlaceId, onSelectPlace, route }: Props) {
+export function ExploreMap({ places, selectedPlaceId, onSelectPlace, route, detourKm }: Props) {
   const camera = useRef<Mapbox.Camera>(null);
   const source = useRef<Mapbox.ShapeSource>(null);
   const shape = useMemo<GeoJSON.FeatureCollection<GeoJSON.Point>>(() => ({
@@ -107,7 +107,7 @@ export function ExploreMap({ places, selectedPlaceId, onSelectPlace, route }: Pr
           <Mapbox.SymbolLayer id="place-photos" filter={['!', ['has', 'point_count']]} style={{ iconImage: ['get', 'imageId'], iconSize: ['case', ['==', ['get', 'id'], selectedPlaceId ?? ''], 0.83, 0.76], iconTranslate: [0, -30], iconAllowOverlap: true, iconIgnorePlacement: true }} />
         </Mapbox.ShapeSource>
       </Mapbox.MapView>
-      {route && <View style={styles.routeBadge}><Text style={styles.routeBadgeText}>Your location → {route.label}</Text><Text style={styles.routeDetails}>{Math.round(route.distanceMeters / 1000)} km · {Math.max(1, Math.round(route.durationSeconds / 60))} min by car</Text></View>}
+      {route && <View style={styles.routeBadge}><Text style={styles.routeBadgeText}>Your location → {route.label}</Text><Text style={styles.routeDetails}>{Math.round(route.distanceMeters / 1000)} km · {Math.max(1, Math.round(route.durationSeconds / 60))} min by car · {places.length} places within {detourKm} km</Text></View>}
       <View style={styles.mapActions}><AnimatedPressable accessibilityLabel="Find my location" style={styles.mapButton}><Icon name="locate"/></AnimatedPressable></View>
     </View>
   );

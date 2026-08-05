@@ -30,6 +30,39 @@ export type ExplorePlace = {
   bestTime: string;
 };
 
+type Coordinate = readonly [number, number];
+
+const earthRadiusKm = 6371;
+
+function distanceToSegmentKm(point: Coordinate, start: Coordinate, end: Coordinate) {
+  const latitudeRadians = point[1] * Math.PI / 180;
+  const longitudeScale = Math.cos(latitudeRadians);
+  const toLocalPoint = ([longitude, latitude]: Coordinate) => ({
+    x: (longitude - point[0]) * Math.PI / 180 * earthRadiusKm * longitudeScale,
+    y: (latitude - point[1]) * Math.PI / 180 * earthRadiusKm,
+  });
+  const segmentStart = toLocalPoint(start);
+  const segmentEnd = toLocalPoint(end);
+  const deltaX = segmentEnd.x - segmentStart.x;
+  const deltaY = segmentEnd.y - segmentStart.y;
+  const lengthSquared = deltaX * deltaX + deltaY * deltaY;
+  const progress = lengthSquared === 0
+    ? 0
+    : Math.max(0, Math.min(1, -(segmentStart.x * deltaX + segmentStart.y * deltaY) / lengthSquared));
+  return Math.hypot(segmentStart.x + progress * deltaX, segmentStart.y + progress * deltaY);
+}
+
+export function distanceFromRouteKm(point: Coordinate, route: Coordinate[]) {
+  if (route.length === 0) return Number.POSITIVE_INFINITY;
+  if (route.length === 1) return distanceToSegmentKm(point, route[0], route[0]);
+
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (let index = 1; index < route.length; index += 1) {
+    closestDistance = Math.min(closestDistance, distanceToSegmentKm(point, route[index - 1], route[index]));
+  }
+  return closestDistance;
+}
+
 export const exploreLayers: ExploreLayer[] = [
   { id: 'attractions', label: 'Attractions', group: 'Travel', color: '#D26945', available: true, source: 'OpenStreetMap contributors' },
   { id: 'beaches', label: 'Beaches', group: 'Travel', color: '#2789A4', available: true, source: 'OpenStreetMap contributors' },

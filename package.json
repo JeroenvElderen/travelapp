@@ -12,6 +12,7 @@
     "expo-haptics": "~57.0.1",
     "expo-image": "~57.0.1",
     "expo-linking": "~57.0.4",
+    "expo-location": "~57.0.7",
     "expo-notifications": "~57.0.8",
     "expo-router": "~57.0.9",
     "expo-secure-store": "~57.0.1",
@@ -28,8 +29,7 @@
     "react-native-url-polyfill": "^4.0.0",
     "react-native-web": "^0.21.2",
     "zod": "^4.4.3",
-    "zustand": "^5.0.14",
-    "expo-location": "~57.0.7"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
